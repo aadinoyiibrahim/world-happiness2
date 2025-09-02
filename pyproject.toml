@@ -1,0 +1,31 @@
+[tool.poetry]
+name = "world-happiness"
+version = "0.1.0"
+description = "Advanced analysis of World Happiness Report"
+authors = ["Your Name <your.email@example.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pandas = "*"
+numpy = "*"
+scipy = "*"
+matplotlib = "*"
+plotly = "*"
+torch = "*"
+optuna = "*"
+shap = "*"
+statsmodels = "*"
+streamlit = "*"
+geopandas = "*"
+
+[tool.poetry.dev-dependencies]
+pytest = "*"
+sphinx = "*"
+black = "*"
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
