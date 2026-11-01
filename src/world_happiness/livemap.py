@@ -47,7 +47,9 @@ class Frame:
     bottom: list[tuple[str, float]]
 
 
-def build_frames(df: pd.DataFrame, scope: str, n: int) -> tuple[list[str], list[Frame]]:
+def build_frames(
+    df: pd.DataFrame, scope: str, n: int, pal: T.Palette = T.DARK
+) -> tuple[list[str], list[Frame]]:
     """Fixed location list for the scope + one :class:`Frame` per year.
 
     Locations stay constant across frames (missing years are ``None``), so the animation only
@@ -71,7 +73,7 @@ def build_frames(df: pd.DataFrame, scope: str, n: int) -> tuple[list[str], list[
             if iso not in by.index:
                 z.append(None)
                 cd.append([names[iso], "-", len(g), "-", "no survey this year"])
-                lc.append(T.SURFACE)
+                lc.append(pal.surface)
                 lw.append(0.4)
                 continue
             r = by.loc[iso]
@@ -85,7 +87,7 @@ def build_frames(df: pd.DataFrame, scope: str, n: int) -> tuple[list[str], list[
                 lc.append(T.CRITICAL)
                 lw.append(2.6)
             else:
-                lc.append(T.SURFACE)
+                lc.append(pal.surface)
                 lw.append(0.4)
         frames.append(
             Frame(
@@ -107,15 +109,21 @@ def build_frames(df: pd.DataFrame, scope: str, n: int) -> tuple[list[str], list[
 
 
 def base_figure(
-    locs: list[str], frame: Frame, scope: str, mode: Mode, zrange: tuple[float, float]
+    locs: list[str],
+    frame: Frame,
+    scope: str,
+    mode: Mode,
+    zrange: tuple[float, float],
+    pal: T.Palette = T.DARK,
 ) -> go.Figure:
     lon, lat, centre = VIEWS[scope]
     hover = (
         "<b>%{customdata[0]}</b><br>Life evaluation <b>%{z:.2f}</b> / 10<br>"
         "#%{customdata[1]} of %{customdata[2]} in "
         + ("the world" if scope == WORLD else scope)
-        + " · world rank #%{customdata[3]}<br><span style='color:#898781'>"
-        "%{customdata[4]}</span><extra></extra>"
+        + " · world rank #%{customdata[3]}<br><span style='color:"
+        + pal.muted
+        + "'>%{customdata[4]}</span><extra></extra>"
     )
     fig = go.Figure(
         go.Choropleth(
@@ -123,12 +131,12 @@ def base_figure(
             z=frame.z,
             customdata=frame.customdata,
             hovertemplate=hover,
-            colorscale=[[i / (len(T.SEQUENTIAL) - 1), c] for i, c in enumerate(T.SEQUENTIAL)],
+            colorscale=[[i / (len(pal.sequential) - 1), c] for i, c in enumerate(pal.sequential)],
             zmin=zrange[0],
             zmax=zrange[1],
             marker={"line": {"color": frame.line_color, "width": frame.line_width}},
             colorbar={
-                "title": {"text": "Score", "side": "top", "font": {"color": T.INK_2}},
+                "title": {"text": "Score", "side": "top", "font": {"color": pal.ink_2}},
                 "orientation": "v",
                 "x": 0.012,
                 "xanchor": "left",
@@ -137,7 +145,7 @@ def base_figure(
                 "len": 0.42,
                 "thickness": 10,
                 "outlinewidth": 0,
-                "tickfont": {"color": T.MUTED},
+                "tickfont": {"color": pal.muted},
             },
         )
     )
@@ -145,11 +153,11 @@ def base_figure(
         "showframe": False,
         "showcoastlines": False,
         "showcountries": True,
-        "countrycolor": T.AXIS,
+        "countrycolor": pal.axis,
         "showland": True,
-        "landcolor": T.LAND,
+        "landcolor": pal.land,
         "showocean": True,
-        "oceancolor": T.OCEAN,
+        "oceancolor": pal.ocean,
         "showlakes": False,
         "bgcolor": "rgba(0,0,0,0)",
         "domain": {"x": [0.04, 0.78], "y": [0, 1]},  # right edge is kept for the ranking card
@@ -158,8 +166,8 @@ def base_figure(
         tilt = max(-30, min(35, centre[1]))  # lean towards the scope, keep the equator in view
         geo |= {
             "projection": {"type": "orthographic", "rotation": {"lon": centre[0], "lat": tilt}},
-            "lataxis": {"showgrid": True, "gridcolor": T.GRID, "dtick": 30},
-            "lonaxis": {"showgrid": True, "gridcolor": T.GRID, "dtick": 30},
+            "lataxis": {"showgrid": True, "gridcolor": pal.grid, "dtick": 30},
+            "lonaxis": {"showgrid": True, "gridcolor": pal.grid, "dtick": 30},
         }
     else:
         geo |= {
@@ -168,7 +176,7 @@ def base_figure(
             "lataxis": {"range": list(lat)},
         }
     fig.update_layout(
-        **T.layout(margin={"l": 0, "r": 0, "t": 0, "b": 0}, geo=geo, dragmode="pan"),
+        **T.layout(pal, margin={"l": 0, "r": 0, "t": 0, "b": 0}, geo=geo, dragmode="pan"),
     )
     return fig
 
@@ -185,6 +193,7 @@ def render_html(
     height: int = 600,
     interval_ms: int = 1600,
     spin_deg_per_s: float = 8.0,
+    theme: str = "dark",
 ) -> str:
     """Self-contained HTML for the live map (embed with ``st.components.v1.html``).
 
@@ -195,14 +204,15 @@ def render_html(
     """
     if scope not in VIEWS:
         raise ValueError(f"unknown scope {scope!r}")
-    locs, frames = build_frames(df, scope, n)
+    pal = T.palette(theme)
+    locs, frames = build_frames(df, scope, n, pal)
     if not frames:
         raise ValueError(f"no data for scope {scope!r}")
     years = [f.year for f in frames]
     start = years.index(year) if year in years else len(years) - 1
     scores = df[TARGET] if scope == WORLD else df.loc[df["continent"] == scope, TARGET]
     zrange = (float(np.floor(scores.min() * 2) / 2), float(np.ceil(scores.max() * 2) / 2))
-    fig = base_figure(locs, frames[start], scope, mode, zrange)
+    fig = base_figure(locs, frames[start], scope, mode, zrange, pal)
     payload = {
         "fig": json.loads(fig.to_json()),
         "frames": [f.__dict__ for f in frames],
@@ -217,16 +227,20 @@ def render_html(
     data = json.dumps(payload, separators=(",", ":")).replace("</", "<\\/")
     subs = {
         "__PLOTLYJS__": get_plotlyjs_version(),
+        "__SCHEME__": pal.mode,
         "__HEIGHT__": str(height),
         "__N__": str(n),
-        "__PAGE__": T.PAGE,
-        "__SURFACE__": T.SURFACE,
-        "__INK__": T.INK,
-        "__INK2__": T.INK_2,
-        "__MUTED__": T.MUTED,
+        "__PAGE__": pal.page,
+        "__SURFACE__": pal.surface,
+        "__GLOW__": pal.glow,
+        "__CARD__": pal.card,
+        "__LINE__": pal.line,
+        "__INK__": pal.ink,
+        "__INK2__": pal.ink_2,
+        "__MUTED__": pal.muted,
         "__GOOD__": T.GOOD,
         "__BAD__": T.CRITICAL,
-        "__ACCENT__": T.SEQUENTIAL[3],
+        "__ACCENT__": pal.categorical[0],
         "__FONT__": T.FONT,
     }
     html = TEMPLATE.read_text(encoding="utf-8")

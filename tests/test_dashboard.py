@@ -152,3 +152,84 @@ def test_dashboard_ignores_bad_url(app):
     app.query_params.update({"scope": "Narnia", "n": "999", "year": "1066"})
     at = app.run()
     assert not at.exception and at.button_group(key="scope").value == WORLD
+
+
+# ------------------------------------------------------------- decomposition / why tab
+from world_happiness import theme as T  # noqa: E402
+from world_happiness.analysis import PARTS  # noqa: E402
+from world_happiness.insights import explain_gap  # noqa: E402
+
+
+def test_factor_means_add_up_and_include_world(ex):
+    m = ex.factor_means(2023).set_index("group")
+    assert WORLD in m.index and set(m.index) - {WORLD} <= set(CONTINENTS)
+    # synthetic scores are built as sum(parts), so the identity is exact here
+    assert m[PARTS].sum(axis=1).to_numpy() == pytest.approx(m[TARGET].to_numpy())
+    assert m.loc[WORLD, "countries"] == m.drop(index=WORLD)["countries"].sum()
+
+
+def test_gap_splits_exactly(ex):
+    m = ex.factor_means(2023).set_index("group")
+    g = ex.gap(m.loc["Europe"], m.loc["Africa"])
+    assert list(g.part) == PARTS
+    assert g.gap.sum() == pytest.approx(m.loc["Europe", TARGET] - m.loc["Africa", TARGET])
+    assert g.share.sum() == pytest.approx(1)
+
+
+def test_factor_year_falls_back_to_nearest_decomposed_year(ex):
+    assert ex.factor_years == [2019, 2020, 2021, 2023]
+    assert ex.factor_year(2018) == 2019 and ex.factor_year(2022) == 2023
+    assert ex.factor_year(2021) == 2021
+
+
+def test_gap_trend_has_every_part_every_year(ex):
+    t = ex.continent_gap_trend("Europe", "Africa")
+    assert len(t) == len(PARTS) * len(ex.factor_years)
+
+
+def test_explain_gap_mentions_groups_and_residual(ex):
+    m = ex.factor_means(2023).set_index("group")
+    lines = explain_gap(ex.gap(m.loc["Europe"], m.loc["Africa"]), "Europe", "Africa")
+    text = " ".join(lines)
+    assert "**Europe**" in text and "**Africa**" in text and "residual" in text
+    assert 3 <= len(lines) <= 5
+
+
+def test_why_charts(ex):
+    means = ex.factor_means(2023)
+    m = means.set_index("group")
+    gap = ex.gap(m.loc["Europe"], m.loc["Africa"])
+    figs = [
+        charts.decomposition_bars(means, ["Europe", "Africa"], T.LIGHT),
+        charts.gap_waterfall(gap, "Europe", "Africa", T.LIGHT),
+        charts.gap_trend(ex.continent_gap_trend("Europe", "Africa"), "Europe", "Africa"),
+        charts.factor_profile(ex.decomposed(2023), ["Europe", "Africa"]),
+        charts.country_trends(ex.df, ["Finland", "Nigeria"], ex.continent_trend()),
+    ]
+    assert all(isinstance(f, go.Figure) and f.data for f in figs)
+    wf = figs[1].data[0]
+    assert sum(wf.x[1:-1]) == pytest.approx(gap.gap.sum())  # steps reach the high score
+
+
+def test_palettes_differ_and_map_follows_theme(dataset):
+    assert T.palette("light") is T.LIGHT and T.palette(None) is T.DARK
+    assert T.LIGHT.page != T.DARK.page
+    light = render_html(dataset.df, "Europe", 2, 2021, "timeline", theme="light")
+    assert "color-scheme: light" in light and T.LIGHT.ocean in light
+
+
+def test_dashboard_why_and_data_tabs(app):
+    at = app.run()
+    assert not at.exception
+    assert len(at.tabs) == 4 and at.tabs[2].label.startswith("🔍")
+    assert any("higher than" in m.value for m in at.markdown)  # narrative rendered
+    at.selectbox(key="why_low").set_value("Asia").run()
+    assert not at.exception
+    at.button_group(key="why_continent").set_value("Europe").run()
+    assert not at.exception
+    at.button_group(key="scope").set_value("Africa").run()
+    assert not at.exception
+    # Data tab follows the scope + year and hides empty columns
+    data = at.tabs[3].dataframe[0].value
+    assert set(data.continent) == {"Africa"} and set(data.year) == {2023}
+    assert not data.isna().all().any()

@@ -3,7 +3,8 @@
 Run with ``uv run wh explore`` or ``uv run streamlit run streamlit_app.py``.
 
 Every control is mirrored in the URL (``?scope=Europe&show=worst&n=5&year=2025&map=globe``),
-so a view can be bookmarked or shared.
+so a view can be bookmarked or shared. The light/dark theme is Streamlit's own (defined in
+``.streamlit/config.toml``); charts and the map read it from ``st.context.theme``.
 """
 
 from __future__ import annotations
@@ -16,7 +17,9 @@ import streamlit as st
 from world_happiness import charts
 from world_happiness import theme as T
 from world_happiness.analysis import WORLD, Explorer
-from world_happiness.config import TARGET, Settings
+from world_happiness.apps import why
+from world_happiness.charts import PART_LABELS
+from world_happiness.config import FACTORS, RESIDUAL, TARGET, Settings
 from world_happiness.countries import CONTINENTS
 from world_happiness.data import WHRDataset
 from world_happiness.livemap import render_html
@@ -29,14 +32,84 @@ CSS = """
 <style>
   .block-container { padding-top: 2.2rem; max-width: 1400px; }
   h1 { letter-spacing: -0.03em; margin-bottom: 0 !important; }
-  .lede { color: #c3c2b7; margin: 0.2rem 0 1.2rem; }
-  div[data-testid="stMetric"] { background: #1a1a19; border: 1px solid rgba(255,255,255,.08);
+  .lede { color: __INK2__; margin: 0.2rem 0 1.2rem; }
+  div[data-testid="stMetric"] { background: __SURFACE__; border: 1px solid __LINE__;
       border-radius: 12px; padding: 14px 16px; }
-  div[data-testid="stMetricLabel"] p { color: #898781; text-transform: uppercase;
+  div[data-testid="stMetricLabel"] p { color: __MUTED__; text-transform: uppercase;
       letter-spacing: .05em; font-size: 12px; }
-  .note { color: #898781; font-size: 13px; }
+  .note { color: __MUTED__; font-size: 13px; }
 </style>
 """
+
+# Streamlit keeps the viewer's theme choice in localStorage under this key (Streamlit >= 1.46,
+# "v2" format) and reads it on load. The button writes it and reloads the page; if the key
+# format ever changes, the button does nothing harmful and the ⋮ → Settings menu still works.
+TOGGLE = """<!doctype html><html><head><style>
+  html, body { margin:0; background:__PAGE__; display:flex; justify-content:flex-end; }
+  button { font: 13px system-ui, -apple-system, "Segoe UI", sans-serif; color:__INK__;
+           background:__SURFACE__; border:1px solid __LINE__; border-radius:999px;
+           padding:7px 14px; cursor:pointer; }
+  button:hover { border-color:__ACCENT__; }
+</style></head><body>
+<button id="t" title="Switch the whole app to the __TARGET__ theme">__LABEL__</button>
+<script>
+document.getElementById('t').onclick = () => {
+  try {
+    const w = window.parent;
+    w.localStorage.setItem('stActiveTheme-' + w.location.pathname + '-v2',
+                           JSON.stringify('__TARGET_CAP__'));
+    w.location.reload();
+  } catch (e) {
+    document.getElementById('t').textContent = 'Use ⋮ → Settings → Theme';
+  }
+};
+</script></body></html>
+"""
+
+COLUMN_LABELS = {
+    "year": "Year",
+    "rank": "World rank",
+    "country": "Country",
+    "iso3": "ISO3",
+    "continent": "Continent",
+    "region": "WHR region",
+    TARGET: "Life evaluation",
+    "ci_lower": "CI low",
+    "ci_upper": "CI high",
+    **{p: f"Explained by: {PART_LABELS[p]}" for p in FACTORS},
+    RESIDUAL: PART_LABELS[RESIDUAL],
+}
+
+
+def current_palette() -> T.Palette:
+    """The palette matching the theme the viewer sees (dark until the browser reports one)."""
+    mode = getattr(getattr(st.context, "theme", None), "type", None)
+    return T.palette(mode)
+
+
+def _fill(template: str, pal: T.Palette, **extra: str) -> str:
+    subs = {
+        "__PAGE__": pal.page,
+        "__SURFACE__": pal.surface,
+        "__LINE__": pal.line,
+        "__INK__": pal.ink,
+        "__INK2__": pal.ink_2,
+        "__MUTED__": pal.muted,
+        "__ACCENT__": pal.categorical[0],
+        **extra,
+    }
+    for k, v in subs.items():
+        template = template.replace(k, v)
+    return template
+
+
+def theme_toggle(pal: T.Palette) -> None:
+    target = "light" if pal.mode == "dark" else "dark"
+    label = "☀ Light mode" if target == "light" else "☾ Dark mode"
+    html = _fill(
+        TOGGLE, pal, __TARGET_CAP__=target.capitalize(), __TARGET__=target, __LABEL__=label
+    )
+    st.iframe(html, height=40)
 
 
 @st.cache_data(show_spinner="Loading the World Happiness Report…")
@@ -49,8 +122,8 @@ def load_panel() -> pd.DataFrame:
 
 
 @st.cache_data(show_spinner=False)
-def live_map(df: pd.DataFrame, scope: str, n: int, year: int, mode: str) -> str:
-    return render_html(df, scope=scope, n=n, year=year, mode=mode)  # type: ignore[arg-type]
+def live_map(df: pd.DataFrame, scope: str, n: int, year: int, mode: str, theme: str) -> str:
+    return render_html(df, scope=scope, n=n, year=year, mode=mode, theme=theme)  # type: ignore[arg-type]
 
 
 def _param(key: str, allowed: list[str] | tuple[str, ...], default: str) -> str:
@@ -151,9 +224,11 @@ def ranking_table(ex: Explorer, ranked: pd.DataFrame, year: int) -> pd.DataFrame
     return out
 
 
-def tab_rankings(ex: Explorer, scope: str, worst: bool, n: int, year: int, mode: str) -> None:
+def tab_rankings(
+    ex: Explorer, scope: str, worst: bool, n: int, year: int, mode: str, pal: T.Palette
+) -> None:
     # our own generated page (escaped data, never user input), so running its JS is safe
-    st.iframe(live_map(ex.df, scope, n, year, mode), height=606)
+    st.iframe(live_map(ex.df, scope, n, year, mode, pal.mode), height=606)
     st.markdown(
         '<p class="note">Rings: ▲ green = top N, ▼ red = bottom N of the selected scope in the '
         "year shown. Grey countries have no survey that year. Hover or drag to pause. "
@@ -165,7 +240,7 @@ def tab_rankings(ex: Explorer, scope: str, worst: bool, n: int, year: int, mode:
     title = f"{'▼ Least happy' if worst else '▲ Happiest'} {len(ranked)} in {where}, {year}"
     left, right = st.columns([1.15, 1])
     left.plotly_chart(
-        charts.ranking_bars(ranked, worst, title), theme=None, config={"displayModeBar": False}
+        charts.ranking_bars(ranked, worst, title, pal), theme=None, config={"displayModeBar": False}
     )
     with right:
         st.markdown("##### Details")
@@ -193,7 +268,7 @@ def tab_rankings(ex: Explorer, scope: str, worst: bool, n: int, year: int, mode:
             st.caption(f"{where} has {total} countries, so top and bottom {n} overlap.")
 
 
-def tab_compare(ex: Explorer, worst: bool, n: int, year: int) -> None:
+def tab_compare(ex: Explorer, worst: bool, n: int, year: int, pal: T.Palette) -> None:
     picked = st.pills(
         "Continents to compare",
         CONTINENTS,
@@ -208,9 +283,11 @@ def tab_compare(ex: Explorer, worst: bool, n: int, year: int) -> None:
 
     cfg = {"displayModeBar": False}
     a, b = st.columns(2)
-    a.plotly_chart(charts.continent_range(summary), theme=None, config=cfg)
-    b.plotly_chart(charts.continent_distribution(world, picked), theme=None, config=cfg)
-    st.plotly_chart(charts.continent_trends(ex.continent_trend(), picked), theme=None, config=cfg)
+    a.plotly_chart(charts.continent_range(summary, pal), theme=None, config=cfg)
+    b.plotly_chart(charts.continent_distribution(world, picked, pal), theme=None, config=cfg)
+    st.plotly_chart(
+        charts.continent_trends(ex.continent_trend(), picked, pal), theme=None, config=cfg
+    )
     st.caption(
         "Means are over the countries surveyed each year, and that set changes: part of a "
         "yearly move can be a change in who was surveyed. Oceania is only Australia and NZ."
@@ -222,7 +299,7 @@ def tab_compare(ex: Explorer, worst: bool, n: int, year: int) -> None:
         r = ex.top(n, year, bottom=worst, scope=c)
         with cols[i % 3]:
             st.markdown(
-                f"<span style='color:{T.CONTINENT_COLORS[c]}'>●</span> **{c}**",
+                f"<span style='color:{pal.continent_colors[c]}'>●</span> **{c}**",
                 unsafe_allow_html=True,
             )
             st.dataframe(
@@ -241,11 +318,42 @@ def tab_compare(ex: Explorer, worst: bool, n: int, year: int) -> None:
         st.dataframe(summary.round(2), hide_index=True, width="stretch")
 
 
-def tab_data(ex: Explorer) -> None:
-    df = ex.df
-    st.dataframe(df, hide_index=True, width="stretch", height=420)
+def tab_data(ex: Explorer, scope: str, year: int) -> None:
+    """The panel, filtered by the same scope and year as the rest of the app."""
+    all_years = st.toggle("All years", value=False, key="data_all_years")
+    d = ex.df if all_years else ex.df[ex.df.year == year]
+    if scope != WORLD:
+        d = d[d.continent == scope]
+    d = d.sort_values(["year", TARGET], ascending=[True, False])
+    empty = [c for c in d.columns if d[c].isna().all()]
+    d = d.drop(columns=empty)
+    where = "the world" if scope == WORLD else scope
+    when = f"{ex.years[0]}–{ex.years[-1]}" if all_years else str(year)
+    st.caption(f"{len(d)} country-years · {where} · {when}")
+    if empty:
+        st.info(
+            f"Hidden because they are empty for this selection: {len(empty)} columns. WHR "
+            f"publishes the *explained by* factor breakdown only from {ex.factor_years[0]} "
+            "onwards, so earlier years carry the score and its CI only."
+        )
+    st.dataframe(
+        d,
+        hide_index=True,
+        width="stretch",
+        height=440,
+        column_config={
+            k: st.column_config.NumberColumn(v, format="%.3f")
+            if k in (TARGET, "ci_lower", "ci_upper", RESIDUAL, *FACTORS)
+            else v
+            for k, v in COLUMN_LABELS.items()
+            if k in d.columns
+        },
+    )
     st.download_button(
-        "⬇ Download CSV", df.to_csv(index=False), "world_happiness_panel.csv", "text/csv"
+        "⬇ Download CSV",
+        d.to_csv(index=False),
+        f"world_happiness_{where.replace(' ', '_')}_{when}.csv",
+        "text/csv",
     )
     st.markdown(
         "**About the data.** World Happiness Report 2026, *Data for Figure 2.1*: the Cantril "
@@ -259,11 +367,15 @@ def tab_data(ex: Explorer) -> None:
 
 def main() -> None:
     st.set_page_config(page_title="World Happiness Atlas", page_icon="🌍", layout="wide")
-    st.markdown(CSS, unsafe_allow_html=True)
+    pal = current_palette()
+    st.markdown(_fill(CSS, pal), unsafe_allow_html=True)
     df = load_panel()
     ex = Explorer(df)
 
-    st.title("World Happiness Atlas")
+    head, toggle = st.columns([5, 1], vertical_alignment="center")
+    head.title("World Happiness Atlas")
+    with toggle:
+        theme_toggle(pal)
     st.markdown(
         f'<p class="lede">How people in {df.iso3.nunique()} countries rate their lives, '
         f"{df.year.min()}–{df.year.max()} · World Happiness Report 2026</p>",
@@ -272,13 +384,17 @@ def main() -> None:
     scope, worst, n, year, mode = controls(ex.years)
     kpis(ex, scope, year)
 
-    rankings, compare, data = st.tabs(["🗺 Map & rankings", "⚖ Compare continents", "📋 Data"])
+    rankings, compare, explain, data = st.tabs(
+        ["🗺 Map & rankings", "⚖ Compare continents", "🔍 Why the gaps?", "📋 Data"]
+    )
     with rankings:
-        tab_rankings(ex, scope, worst, n, year, mode)
+        tab_rankings(ex, scope, worst, n, year, mode, pal)
     with compare:
-        tab_compare(ex, worst, n, year)
+        tab_compare(ex, worst, n, year, pal)
+    with explain:
+        why.render(ex, year, pal)
     with data:
-        tab_data(ex)
+        tab_data(ex, scope, year)
 
 
 if __name__ == "__main__":

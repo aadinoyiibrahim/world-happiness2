@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import pandas as pd
 
-from .config import FACTORS, TARGET
+from .config import FACTORS, RESIDUAL, TARGET
 from .countries import CONTINENTS
 
 WORLD = "World"
+PARTS = [*FACTORS, RESIDUAL]  # the WHR decomposition: these add up to the score
 
 
 class Explorer:
@@ -82,6 +83,69 @@ class Explorer:
         """Mean score per continent and year (over the countries surveyed that year)."""
         g = self.df.groupby(["continent", "year"], observed=True)[TARGET]
         return g.agg(["mean", "median", "count"]).reset_index()
+
+    # ------------------------------------------------------------ decomposition
+    @property
+    def factor_years(self) -> list[int]:
+        """Years in which WHR published the six-factor decomposition (2019 onwards)."""
+        full = self.df.dropna(subset=list(FACTORS))
+        return sorted(int(y) for y in full["year"].unique())
+
+    def factor_year(self, year: int) -> int:
+        """``year`` if it has the decomposition, else the nearest year that does."""
+        years = self.factor_years
+        if not years:
+            raise ValueError("no year with the factor decomposition")
+        return min(years, key=lambda y: (abs(y - year), -y))
+
+    def decomposed(self, year: int, scope: str = WORLD) -> pd.DataFrame:
+        """Country rows with all six factors, for one year and scope, best first."""
+        d = self.scope(scope, year).dropna(subset=list(FACTORS))
+        return d.assign(scope_rank=range(1, len(d) + 1)).reset_index(drop=True)
+
+    def factor_means(self, year: int) -> pd.DataFrame:
+        """Mean score and mean contribution of every factor per continent (plus the world).
+
+        Means are over countries with the full decomposition. Because each country's score is
+        the sum of its parts, the mean score is the sum of the mean parts (up to WHR's
+        rounding of about 0.003 per country).
+        """
+        d = self.decomposed(year)
+        cols = [TARGET, *PARTS]
+        g = d.groupby("continent", observed=True)[cols].mean()
+        g["countries"] = d.groupby("continent", observed=True).size()
+        world = d[cols].mean().to_frame(WORLD).T.assign(countries=len(d))
+        order = [c for c in CONTINENTS if c in g.index]
+        return pd.concat([g.loc[order], world]).rename_axis("group").reset_index()
+
+    @staticmethod
+    def gap(high: pd.Series, low: pd.Series) -> pd.DataFrame:
+        """Split ``high[score] - low[score]`` into the gap in each part of the decomposition.
+
+        ``gap`` sums to the score gap; ``share`` is each part's fraction of it (can be
+        negative when the lower group is ahead on that part).
+        """
+        total = float(high[TARGET] - low[TARGET])
+        out = pd.DataFrame(
+            {
+                "part": PARTS,
+                "high": [float(high[p]) for p in PARTS],
+                "low": [float(low[p]) for p in PARTS],
+            }
+        )
+        out["gap"] = out["high"] - out["low"]
+        out["share"] = out["gap"] / total if total else float("nan")
+        return out
+
+    def continent_gap_trend(self, high: str, low: str) -> pd.DataFrame:
+        """Per-part gap between two continents' means, for every decomposition year."""
+        rows = []
+        for y in self.factor_years:
+            m = self.factor_means(y).set_index("group")
+            if high in m.index and low in m.index:
+                g = self.gap(m.loc[high], m.loc[low]).assign(year=y)
+                rows.append(g)
+        return pd.concat(rows, ignore_index=True) if rows else pd.DataFrame()
 
     # ------------------------------------------------------------------- legacy
     def regional_trend(self) -> pd.DataFrame:

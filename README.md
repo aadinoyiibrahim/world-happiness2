@@ -19,6 +19,19 @@ Report (WHR) 2026 *Data for Figure 2.1*: life evaluations for 167 countries, 201
   - the distribution of every country's score;
   - continent means over time;
   - side-by-side top/worst-N tables.
+- **Why the gaps?** Each WHR score is six "explained by" parts plus a residual, so any gap
+  splits exactly into those parts. This tab breaks down:
+  - the best vs worst continent: which factors make up the gap, whether that changes over
+    time, and whether it is broad or driven by a few countries;
+  - inside any continent, its happiest vs least happy country, against the continent and
+    world means.
+
+  Each view comes with a plain-language summary, a "what to expect" check and the limits
+  of the method.
+- **Data tab** follows the selected scope and year, hides columns that are empty (the
+  factor breakdown starts in 2019) and downloads as CSV.
+- **Light / dark theme**: switch with the ☀/☾ button or ⋮ → Settings; charts and map follow.
+  The default follows the viewer's OS.
 - **Shareable URLs**: every control is saved in the address bar, for example
   `?scope=Europe&show=worst&n=5&year=2025&map=globe`.
 
@@ -59,10 +72,11 @@ src/world_happiness/
   config.py           Settings (paths, env overrides) and column names
   countries.py        name -> ISO3 -> continent (6) and WHR region (10)
   data.py             WHRDataset: load, harmonise, validate (pandera schema)
-  analysis.py         Explorer: scoped rankings, continent summary/trends, correlations
+  analysis.py         Explorer: scoped rankings, continent summaries, gap decomposition
+  insights.py         Plain-language reading of a gap decomposition
   livemap.py/.html    The animated map: frames built in Python, looped in the browser
-  charts.py, theme.py Dashboard charts and the shared colour system
-  apps/dashboard.py   Streamlit app
+  charts.py, theme.py Dashboard charts and the light/dark colour system
+  apps/dashboard.py   Streamlit app (apps/why.py = the "Why the gaps?" tab)
   features.py, model.py, causal.py, pipeline.py, plots.py, apps/results.py
                       Modelling pipeline and Dash results app (the `ml` and `causal` extras)
   cli.py              `wh` command
