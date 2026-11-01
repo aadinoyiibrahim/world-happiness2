@@ -1,8 +1,10 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
+title: "World Happiness: a tested analysis toolkit and dashboards for the World Happiness Report"
 authors:
-  - family-names: YourLastName
-    given-names: YourFirstName
-title: "Advanced World Happiness Analysis"
-version: 0.1.0
-date-released: 2025-09-02
+  - family-names: Ibrahim
+    given-names: Abdullahi Adinoyi
+version: 0.2.0
+date-released: 2026-09-30
+license: MIT
+repository-code: "https://github.com/aadinoyiibrahim/world-happiness2"

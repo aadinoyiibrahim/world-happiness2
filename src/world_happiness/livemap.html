@@ -1,0 +1,129 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<script src="https://cdn.plot.ly/plotly-__PLOTLYJS__.min.js" charset="utf-8"></script>
+<style>
+  :root { color-scheme: dark; }
+  html, body { margin:0; background:__PAGE__; color:__INK__; font-family:__FONT__; }
+  #wrap { position:relative; height:__HEIGHT__px; border-radius:14px; overflow:hidden;
+          background:radial-gradient(120% 90% at 50% 40%, #16181d 0%, __PAGE__ 70%);
+          border:1px solid rgba(255,255,255,0.08); }
+  #map { position:absolute; inset:0 0 54px 0; }
+  .year { position:absolute; top:14px; left:20px; font-size:56px; font-weight:700;
+          letter-spacing:-2px; line-height:1; color:__INK__; opacity:.92;
+          font-variant-numeric:tabular-nums; pointer-events:none; }
+  .sub { position:absolute; top:74px; left:22px; font-size:13px; color:__MUTED__;
+         pointer-events:none; }
+  .card { position:absolute; top:14px; right:14px; width:21%; min-width:190px; max-width:250px; box-sizing:border-box; padding:12px 14px;
+          background:rgba(26,26,25,.82); backdrop-filter:blur(6px); border-radius:12px;
+          border:1px solid rgba(255,255,255,0.10); font-size:13px; }
+  .card h4 { margin:0 0 6px; font-size:12px; font-weight:600; letter-spacing:.04em;
+             text-transform:uppercase; color:__INK2__; }
+  .card ol { margin:0 0 10px; padding:0; list-style:none; }
+  .card li { display:flex; justify-content:space-between; gap:8px; padding:2px 0;
+             transition:opacity .4s; }
+  .card li span:last-child { font-variant-numeric:tabular-nums; color:__INK2__; }
+  .card li.fresh { animation:fade .6s ease-out; }
+  @keyframes fade { from { opacity:0; transform:translateX(6px);} to { opacity:1; } }
+  .good, .card h4.good { color:__GOOD__; } .bad, .card h4.bad { color:__BAD__; }
+  .bar { position:absolute; left:0; right:0; bottom:0; height:54px; display:flex;
+         align-items:center; gap:12px; padding:0 16px; background:rgba(26,26,25,.9);
+         border-top:1px solid rgba(255,255,255,0.08); }
+  button { background:__SURFACE__; color:__INK__; border:1px solid rgba(255,255,255,.18);
+           border-radius:8px; padding:6px 12px; font:inherit; font-size:13px; cursor:pointer;
+           min-width:84px; }
+  button:hover { border-color:__ACCENT__; }
+  input[type=range] { flex:1; accent-color:__ACCENT__; }
+  .legend { font-size:12px; color:__INK2__; white-space:nowrap; }
+  .dot { display:inline-block; width:10px; height:10px; border-radius:50%;
+         border:2px solid currentColor; margin:0 4px 0 10px; vertical-align:-1px; }
+  .progress { position:absolute; left:0; bottom:54px; height:2px; background:__ACCENT__;
+              width:0; opacity:.8; }
+</style></head>
+<body>
+<div id="wrap">
+  <div id="map"></div>
+  <div class="year" id="year"></div>
+  <div class="sub" id="sub"></div>
+  <div class="card" id="card"></div>
+  <div class="progress" id="progress"></div>
+  <div class="bar">
+    <button id="play" aria-label="Pause animation">❚❚ Pause</button>
+    <input id="slider" type="range" min="0" step="1" aria-label="Year">
+    <span class="legend"><span class="dot good"></span>▲ Top __N__
+      <span class="dot bad"></span>▼ Worst __N__</span>
+  </div>
+</div>
+<script>
+const D = __DATA__;
+const el = document.getElementById('map');
+const yearEl = document.getElementById('year'), subEl = document.getElementById('sub');
+const card = document.getElementById('card'), slider = document.getElementById('slider');
+const btn = document.getElementById('play'), prog = document.getElementById('progress');
+const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let idx = D.start, playing = !reduce, hovering = false, dragging = false;
+let lon = D.lon0, phase = 0, lastTick = performance.now();
+slider.max = D.frames.length - 1; slider.value = idx;
+
+const ESC = {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'};
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ESC[c]); }
+function list(rows, cls, label) {
+  return rows.map((r, i) =>
+    `<li class="fresh"><span><span class="${cls}">${label(i)}</span> ${esc(r[0])}</span>` +
+    `<span>${r[1].toFixed(2)}</span></li>`).join('');
+}
+function show(i) {
+  const f = D.frames[i];
+  Plotly.restyle(el, {z:[f.z], customdata:[f.customdata],
+    'marker.line.color':[f.line_color], 'marker.line.width':[f.line_width]}, [0]);
+  yearEl.textContent = f.year;
+  subEl.textContent = `${D.scope} · ${f.z.filter(v => v !== null).length} countries surveyed`;
+  const worst = f.bottom.slice().reverse();  // least happy first
+  card.innerHTML = `<h4 class="good">▲ Happiest</h4><ol>${list(f.top, 'good', k => k + 1)}</ol>` +
+    (worst.length ? `<h4 class="bad">▼ Least happy</h4><ol>${list(worst, 'bad', () => '')}</ol>` : '');
+  slider.value = i;
+}
+function setPlaying(p) {
+  playing = p; btn.textContent = p ? '❚❚ Pause' : '▶ Play';
+  btn.setAttribute('aria-label', p ? 'Pause animation' : 'Play animation');
+  lastTick = performance.now();
+}
+btn.onclick = () => setPlaying(!playing);
+slider.oninput = () => { setPlaying(false); idx = +slider.value; show(idx); };
+
+Plotly.newPlot(el, D.fig.data, D.fig.layout,
+  {displayModeBar:false, responsive:true, scrollZoom:false}).then(() => {
+  show(idx);
+  el.on('plotly_hover', () => { hovering = true; });
+  el.on('plotly_unhover', () => { hovering = false; lastTick = performance.now(); });
+  el.addEventListener('pointerdown', () => { dragging = true; });
+  window.addEventListener('pointerup', () => {
+    if (!dragging) return;
+    dragging = false;
+    const r = el.layout.geo.projection.rotation;
+    if (r && r.lon !== undefined) { lon = r.lon; D.lon0 = r.lon; phase = 0; }
+    lastTick = performance.now();
+  });
+  requestAnimationFrame(loop);
+});
+
+let lastSpin = 0;
+function loop(now) {
+  const live = playing && !hovering && !dragging;
+  if (D.mode === 'timeline') {
+    const t = live ? (now - lastTick) / D.interval : 0;
+    prog.style.width = (live ? Math.min(t, 1) * 100 : 0) + '%';
+    if (live && t >= 1) { idx = (idx + 1) % D.frames.length; show(idx); lastTick = now; }
+  } else if (live && now - lastSpin > 40) {
+    const dt = Math.min(now - lastSpin, 100) / 1000;
+    if (D.sway) {  // rock around the continent instead of spinning it out of view
+      phase += dt * D.spin / D.sway;
+      lon = D.lon0 + D.sway * Math.sin(phase);
+    } else {
+      lon = ((lon + D.spin * dt + 540) % 360) - 180;
+    }
+    Plotly.relayout(el, {'geo.projection.rotation.lon': lon});
+    lastSpin = now;
+  } else if (!live) { lastSpin = now; }
+  requestAnimationFrame(loop);
+}
+</script></body></html>

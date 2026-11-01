@@ -1,0 +1,34 @@
+# docker compose up --build   ->  dashboard http://localhost:8501 , Dash results http://localhost:8050
+# The dashboard reads the raw WHR file directly; `pipeline` (model + causal) only feeds `results`.
+# Only `dashboard` builds the image; the other services reuse it (avoids parallel builds of one tag).
+x-app: &app
+  image: world-happiness:latest
+  volumes: ["outputs:/app/outputs"]  # named volume shared by pipeline and results
+
+services:
+  dashboard:
+    <<: *app
+    build: .
+    ports: ["8501:8501"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://localhost:8501/_stcore/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  pipeline:
+    <<: *app
+    pull_policy: never
+    command: ["wh", "run"]
+    depends_on: [dashboard]
+
+  results:
+    <<: *app
+    pull_policy: never
+    command: ["wh", "results"]
+    ports: ["8050:8050"]
+    depends_on: { pipeline: { condition: service_completed_successfully } }
+
+volumes:
+  outputs:

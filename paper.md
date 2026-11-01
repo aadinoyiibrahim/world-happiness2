@@ -1,25 +1,33 @@
 ---
-title: 'Advanced World Happiness Analysis: A Python Package for Data Science and Math Showcase'
+title: 'World Happiness: a tested analysis toolkit and dashboards for the World Happiness Report'
 tags:
   - Python
   - data science
-  - machine learning
-  - statistics
+  - reproducibility
+  - causal inference
 authors:
-  - name: Your Name
+  - name: Abdullahi Adinoyi Ibrahim
     affiliation: 1
 affiliations:
- - name: Your Institution
-   index: 1
-date: 02 September 2025
+  - name: TU Dresden, Germany
+    index: 1
+date: 30 September 2026
 bibliography: paper.bib
 ---
 
 # Summary
-This package provides an advanced tutorial on the World Happiness Report dataset, showcasing skills in data analysis (EDA with world maps), data science (stacking models, forecasting), software engineering (modular OOP), and math (optimization, linear algebra).
 
-# Statement of Need
-Designed for portfolios/GitHub, it fills the gap for reproducible, JOSS-ready projects demonstrating interdisciplinary skills.
+`world-happiness` turns the World Happiness Report *Data for Figure 2.1* into a validated,
+ISO3-keyed country-year panel. On that panel it provides descriptive analysis, an XGBoost
+model with grouped and temporal validation and TreeSHAP explanations, and DoWhy back-door
+estimates. A Streamlit explorer and a Dash results dashboard present the outputs, and the
+whole pipeline runs in one command or one `docker compose up`.
+
+# Statement of need
+
+TODO: position against existing WHR analyses and state the intended audience (teaching,
+reproducible baselines). See MODEL_CARD.md for the limits of the factor data.
 
 # Acknowledgements
-Based on datasets from UNSN and Kaggle.
+
+Data: World Happiness Report / Gallup World Poll.
