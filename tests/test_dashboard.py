@@ -233,3 +233,16 @@ def test_dashboard_why_and_data_tabs(app):
     data = at.tabs[3].dataframe[0].value
     assert set(data.continent) == {"Africa"} and set(data.year) == {2023}
     assert not data.isna().all().any()
+
+
+# ------------------------------------------------------------------------ GIF export
+from world_happiness.export import frame_figure  # noqa: E402
+from world_happiness.livemap import color_range  # noqa: E402
+
+
+def test_export_frame_has_year_and_ranking_card(dataset):
+    locs, frames = build_frames(dataset.df, WORLD, 2)
+    fig = frame_figure(locs, frames[-1], WORLD, "globe", color_range(dataset.df, WORLD), T.DARK, 40)
+    texts = [a.text for a in fig.layout.annotations]
+    assert texts[0] == "<b>2023</b>" and "HAPPIEST" in texts[2] and "LEAST HAPPY" in texts[2]
+    assert fig.layout.geo.projection.rotation.lon == 40

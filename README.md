@@ -1,5 +1,13 @@
 # World Happiness Atlas
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/happiness_world_timeline_dark.gif">
+    <img alt="Animated world map of life evaluations 2011–2025, top and bottom 5 countries ringed"
+         src="docs/assets/happiness_world_timeline_light.gif" width="100%">
+  </picture>
+</p>
+
 [![CI](https://github.com/aadinoyiibrahim/world-happiness2/actions/workflows/ci.yml/badge.svg)](https://github.com/aadinoyiibrahim/world-happiness2/actions/workflows/ci.yml)
 
 An interactive Streamlit dashboard and a tested Python package for the World Happiness
@@ -34,6 +42,22 @@ Report (WHR) 2026 *Data for Figure 2.1*: life evaluations for 167 countries, 201
   The default follows the viewer's OS.
 - **Shareable URLs**: every control is saved in the address bar, for example
   `?scope=Europe&show=worst&n=5&year=2025&map=globe`.
+
+## Animated map for READMEs and slides
+
+GitHub cannot run the live map's JavaScript, so it is exported as a GIF. Each frame is the
+same Plotly figure the app shows, rendered by Kaleido (which uses Chrome) and joined with
+Pillow.
+
+```bash
+uv sync --extra export
+uv run wh export-map                                    # world, timeline, dark
+uv run wh export-map --theme light                      # light variant
+uv run wh export-map --mode globe --scope Europe        # rocking globe over Europe
+```
+
+Files land in `docs/assets/` as `happiness_<scope>_<mode>_<theme>.gif`. The world timeline
+is about 1 MB; a 36-frame globe is about 3.5 MB. Regenerate the GIFs when the data changes.
 
 ## Run it
 

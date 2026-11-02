@@ -1,4 +1,4 @@
-"""Command line: ``wh run``, ``wh prepare``, ``wh explore``, ``wh results``."""
+"""Command line: ``wh explore``, ``wh export-map``, ``wh run``, ``wh prepare``, ``wh results``."""
 
 from __future__ import annotations
 
@@ -21,12 +21,32 @@ def main(argv: list[str] | None = None) -> None:
     explore = sub.add_parser("explore", help="launch the Streamlit dashboard")
     explore.add_argument("--port", type=int, default=8501)
     sub.add_parser("results", help="launch the Dash results dashboard (needs the ml extra)")
+    exp = sub.add_parser(
+        "export-map", help="save the animated map as a GIF (needs the export extra)"
+    )
+    exp.add_argument("--outdir", default="docs/assets/", help="folder for the GIF")
+    exp.add_argument("--scope", default="World", help="World or a continent, e.g. Europe")
+    exp.add_argument("--mode", choices=["timeline", "globe"], default="timeline")
+    exp.add_argument("--theme", choices=["dark", "light"], default="dark")
+    exp.add_argument("--n", type=int, default=5, help="how many top/worst countries to ring")
+    exp.add_argument("--year", type=int, default=None, help="globe mode: year to show")
     args = parser.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 
     if args.cmd == "explore":
         cmd = [sys.executable, "-m", "streamlit", "run", str(DASHBOARD)]
         subprocess.run([*cmd, f"--server.port={args.port}"], check=True)
+        return
+
+    if args.cmd == "export-map":
+        from .config import Settings
+        from .data import WHRDataset
+        from .export import export_map
+
+        df = WHRDataset.from_excel(Settings().raw_path).df
+        outdir = args.outdir if args.outdir.endswith("/") else args.outdir + "/"
+        path = export_map(df, outdir, args.scope, args.mode, args.theme, n=args.n, year=args.year)
+        logging.getLogger("wh").info("Wrote %s (%.1f MB)", path, path.stat().st_size / 1e6)
         return
 
     from .pipeline import Pipeline  # model code needs the ml extra; the dashboard does not

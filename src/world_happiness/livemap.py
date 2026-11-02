@@ -184,6 +184,12 @@ def base_figure(
 TEMPLATE = Path(__file__).with_name("livemap.html")
 
 
+def color_range(df: pd.DataFrame, scope: str) -> tuple[float, float]:
+    """One colour range per scope over all years (rounded out to 0.5), so frames compare."""
+    scores = df[TARGET] if scope == WORLD else df.loc[df["continent"] == scope, TARGET]
+    return float(np.floor(scores.min() * 2) / 2), float(np.ceil(scores.max() * 2) / 2)
+
+
 def render_html(
     df: pd.DataFrame,
     scope: str = WORLD,
@@ -210,8 +216,7 @@ def render_html(
         raise ValueError(f"no data for scope {scope!r}")
     years = [f.year for f in frames]
     start = years.index(year) if year in years else len(years) - 1
-    scores = df[TARGET] if scope == WORLD else df.loc[df["continent"] == scope, TARGET]
-    zrange = (float(np.floor(scores.min() * 2) / 2), float(np.ceil(scores.max() * 2) / 2))
+    zrange = color_range(df, scope)
     fig = base_figure(locs, frames[start], scope, mode, zrange, pal)
     payload = {
         "fig": json.loads(fig.to_json()),

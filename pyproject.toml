@@ -29,6 +29,8 @@ ml = [
     "dash-ag-grid>=31",
 ]
 causal = ["world-happiness[ml]", "dowhy>=0.13"]
+# `wh export-map`: render the animated map to a GIF (Kaleido drives a headless Chrome).
+export = ["kaleido>=1.0"]
 
 [project.scripts]
 wh = "world_happiness.cli:main"
