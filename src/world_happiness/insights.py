@@ -1,4 +1,3 @@
-"""Plain-language readings of a gap decomposition (pure functions, unit-tested)."""
 
 from __future__ import annotations
 
@@ -18,7 +17,8 @@ LABELS = {
 
 
 def explain_gap(gap: pd.DataFrame, high: str, low: str) -> list[str]:
-    """Three to five sentences describing a :meth:`Explorer.gap` table.
+    """
+    Three to five sentences describing a :meth:`Explorer.gap` table.
 
     The sentences only restate the arithmetic of WHR's decomposition (which parts are large,
     how much the residual carries); they make no causal claim.

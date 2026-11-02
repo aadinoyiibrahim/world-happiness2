@@ -1,4 +1,3 @@
-"""Load, harmonise and validate the WHR 'Data for Figure 2.1' panel."""
 
 from __future__ import annotations
 
@@ -39,7 +38,9 @@ SCHEMA = pa.DataFrameSchema(
 
 
 class WHRDataset:
-    """A validated country-year panel. Build it with :meth:`from_excel` or :meth:`load`."""
+    """
+    A validated country-year panel. Build it with :meth:`from_excel` or :meth:`load`.
+    """
 
     def __init__(self, df: pd.DataFrame) -> None:
         self.df = SCHEMA.validate(df).sort_values(["year", "rank"]).reset_index(drop=True)
@@ -70,7 +71,9 @@ class WHRDataset:
 
     @property
     def with_factors(self) -> pd.DataFrame:
-        """Rows where WHR published the factor decomposition (2019 onwards)."""
+        """
+        Rows where WHR published the factor decomposition (2019 onwards).
+        """
         return self.df.dropna(subset=list(FACTORS))
 
     def filter(

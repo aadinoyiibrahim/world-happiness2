@@ -1,8 +1,3 @@
-"""One visual system for the dashboard in two modes (dark and light).
-
-Values follow a validated reference palette: each mode has its own steps, chosen for its
-surface, not an automatic flip. Change colours here only.
-"""
 
 from __future__ import annotations
 
@@ -12,7 +7,6 @@ from typing import Any
 from .config import FACTORS, RESIDUAL
 from .countries import CONTINENTS
 
-# Status hues are mode-invariant and always ship with a ▲/▼ label.
 GOOD = "#0ca30c"  # happiest-N rings and bars
 CRITICAL = "#d03b3b"  # least-happy-N rings and bars
 FONT = 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif'
@@ -91,12 +85,16 @@ LIGHT = Palette(
 
 
 def palette(mode: str | None) -> Palette:
-    """``"light"`` -> :data:`LIGHT`; anything else (incl. ``None``) -> :data:`DARK`."""
+    """
+    ``"light"`` -> :data:`LIGHT`; anything else (incl. ``None``) -> :data:`DARK`.
+    """
     return LIGHT if mode == "light" else DARK
 
 
 def layout(pal: Palette = DARK, **overrides: Any) -> dict[str, Any]:
-    """Plotly layout defaults for every dashboard chart, in the given palette."""
+    """
+    Plotly layout defaults for every dashboard chart, in the given palette.
+    """
     axis = {
         "gridcolor": pal.grid,
         "linecolor": pal.axis,

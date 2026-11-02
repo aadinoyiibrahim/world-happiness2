@@ -1,4 +1,3 @@
-"""Country harmonisation: WHR names -> canonical name, ISO3, continent and WHR region."""
 
 from __future__ import annotations
 
@@ -8,13 +7,11 @@ import country_converter as coco
 import pandas as pd
 
 ALIASES = {"Swaziland": "Eswatini"}  # historical names folded into the current one
-# territory -> (code, coco "continent" used for the WHR region, display continent)
 TERRITORIES = {
     "North Cyprus": ("CYN", "Europe", "Europe"),
     "Somaliland Region": ("SOL", "Africa", "Africa"),
 }
 
-# Seven-continent split (coco ``Continent_7``) without Antarctica; the order is the display order.
 CONTINENTS = ("Africa", "Asia", "Europe", "North America", "South America", "Oceania")
 
 REGIONS = (
@@ -37,7 +34,9 @@ _SSA = {"SDN"}  # UN puts Sudan in Northern Africa; WHR in Sub-Saharan Africa
 
 
 def whr_region(iso3: str, subregion: str | None, continent: str) -> str:
-    """Map a country to the ten regions used in the World Happiness Report."""
+    """
+    Map a country to the ten regions used in the World Happiness Report.
+    """
     if iso3 in _ANZ:
         return "North America and ANZ"
     if iso3 in _CIS:
@@ -62,12 +61,15 @@ def whr_region(iso3: str, subregion: str | None, continent: str) -> str:
 
 
 def _as_list(x: str | list[str]) -> list[str]:
-    """``coco.convert`` returns a bare string for a single input; always get a list."""
+    """
+    ``coco.convert`` returns a bare string for a single input; always get a list.
+    """
     return [x] if isinstance(x, str) else list(x)
 
 
 def country_table(names: Iterable[str]) -> pd.DataFrame:
-    """One row per raw name with canonical ``country``, ``iso3``, ``continent`` and ``region``.
+    """
+    One row per raw name with canonical ``country``, ``iso3``, ``continent`` and ``region``.
 
     ``continent`` is one of :data:`CONTINENTS` (the Americas are split into North and South);
     ``region`` is one of the ten WHR regions.

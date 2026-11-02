@@ -1,10 +1,3 @@
-"""A choropleth that never sits still: it loops through the years or spins as a globe.
-
-Python precomputes every frame (scores, ranks, highlight rings); a small self-contained
-HTML page runs the loop in the browser with ``Plotly.restyle`` / ``Plotly.relayout``, so the
-Streamlit script does not rerun on every tick. Hovering, dragging or the pause button stops
-the motion, and ``prefers-reduced-motion`` starts it paused.
-"""
 
 from __future__ import annotations
 
@@ -24,7 +17,6 @@ from .config import TARGET
 
 Mode = Literal["timeline", "globe"]
 
-# Map window per scope: (lon range, lat range) for the flat map, centre for the globe.
 VIEWS: dict[str, tuple[tuple[int, int], tuple[int, int], tuple[int, int]]] = {
     WORLD: ((-180, 180), (-58, 84), (10, 20)),
     "Africa": ((-20, 55), (-36, 38), (18, 3)),
@@ -47,10 +39,9 @@ class Frame:
     bottom: list[tuple[str, float]]
 
 
-def build_frames(
-    df: pd.DataFrame, scope: str, n: int, pal: T.Palette = T.DARK
-) -> tuple[list[str], list[Frame]]:
-    """Fixed location list for the scope + one :class:`Frame` per year.
+def build_frames(df: pd.DataFrame, scope: str, n: int, pal: T.Palette = T.DARK) -> tuple[list[str], list[Frame]]:
+    """
+    Fixed location list for the scope + one :class:`Frame` per year.
 
     Locations stay constant across frames (missing years are ``None``), so the animation only
     swaps values and never re-projects the map.
@@ -108,14 +99,7 @@ def build_frames(
     return locs, frames
 
 
-def base_figure(
-    locs: list[str],
-    frame: Frame,
-    scope: str,
-    mode: Mode,
-    zrange: tuple[float, float],
-    pal: T.Palette = T.DARK,
-) -> go.Figure:
+def base_figure(locs: list[str], frame: Frame, scope: str, mode: Mode, zrange: tuple[float, float], pal: T.Palette = T.DARK) -> go.Figure:
     lon, lat, centre = VIEWS[scope]
     hover = (
         "<b>%{customdata[0]}</b><br>Life evaluation <b>%{z:.2f}</b> / 10<br>"
@@ -160,10 +144,10 @@ def base_figure(
         "oceancolor": pal.ocean,
         "showlakes": False,
         "bgcolor": "rgba(0,0,0,0)",
-        "domain": {"x": [0.04, 0.78], "y": [0, 1]},  # right edge is kept for the ranking card
+        "domain": {"x": [0.04, 0.78], "y": [0, 1]},  
     }
     if mode == "globe":
-        tilt = max(-30, min(35, centre[1]))  # lean towards the scope, keep the equator in view
+        tilt = max(-30, min(35, centre[1]))  
         geo |= {
             "projection": {"type": "orthographic", "rotation": {"lon": centre[0], "lat": tilt}},
             "lataxis": {"showgrid": True, "gridcolor": pal.grid, "dtick": 30},
@@ -185,7 +169,9 @@ TEMPLATE = Path(__file__).with_name("livemap.html")
 
 
 def color_range(df: pd.DataFrame, scope: str) -> tuple[float, float]:
-    """One colour range per scope over all years (rounded out to 0.5), so frames compare."""
+    """
+    One colour range per scope over all years (rounded out to 0.5), so frames compare.
+    """
     scores = df[TARGET] if scope == WORLD else df.loc[df["continent"] == scope, TARGET]
     return float(np.floor(scores.min() * 2) / 2), float(np.ceil(scores.max() * 2) / 2)
 
@@ -201,7 +187,8 @@ def render_html(
     spin_deg_per_s: float = 8.0,
     theme: str = "dark",
 ) -> str:
-    """Self-contained HTML for the live map (embed with ``st.components.v1.html``).
+    """
+    Self-contained HTML for the live map (embed with ``st.components.v1.html``).
 
     ``timeline`` loops through every year, starting at ``year``; ``globe`` shows ``year`` on
     an orthographic globe that spins (world) or sways around the continent (continent scope);
@@ -227,7 +214,7 @@ def render_html(
         "interval": interval_ms,
         "spin": spin_deg_per_s,
         "lon0": VIEWS[scope][2][0],
-        "sway": 0 if scope == WORLD else 45,  # continents rock +-45 deg so they stay in view
+        "sway": 0 if scope == WORLD else 45,  
     }
     data = json.dumps(payload, separators=(",", ":")).replace("</", "<\\/")
     subs = {
@@ -251,4 +238,4 @@ def render_html(
     html = TEMPLATE.read_text(encoding="utf-8")
     for k, v in subs.items():
         html = html.replace(k, v)
-    return html.replace("__DATA__", data)  # last: data must never be re-substituted
+    return html.replace("__DATA__", data)  

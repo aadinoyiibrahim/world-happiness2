@@ -1,4 +1,3 @@
-"""Paths, column names and constants shared by the whole package."""
 
 from __future__ import annotations
 
@@ -17,7 +16,6 @@ FACTORS = (
 )
 RESIDUAL = "dystopia_residual"
 
-# WHR "Data for Figure 2.1" header -> tidy name
 RAW_COLUMNS = {
     "Year": "year",
     "Rank": "rank",
@@ -37,7 +35,9 @@ RAW_COLUMNS = {
 
 @dataclass(frozen=True)
 class Settings:
-    """Where things live. Override with ``WH_ROOT`` / ``WH_RAW_FILE`` env vars."""
+    """
+    Where things live. Override with ``WH_ROOT`` / ``WH_RAW_FILE`` env vars.
+    """
 
     root: Path = field(default_factory=lambda: Path(os.getenv("WH_ROOT", ".")).resolve())
     raw_file: str = field(

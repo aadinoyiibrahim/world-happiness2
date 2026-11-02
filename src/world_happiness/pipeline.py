@@ -1,4 +1,3 @@
-"""End-to-end pipeline: raw Excel -> validated panel -> features -> model -> causal."""
 
 from __future__ import annotations
 
@@ -29,7 +28,7 @@ class Pipeline:
         return ds
 
     def train(self, ds: WHRDataset) -> pd.DataFrame:
-        from .model import HappinessModel  # needs the ml extra
+        from .model import HappinessModel  
 
         model = HappinessModel(ds.with_factors, seed=self.settings.seed)
         metrics = model.evaluate()
@@ -40,7 +39,7 @@ class Pipeline:
         return metrics
 
     def causal(self, ds: WHRDataset) -> pd.DataFrame | None:
-        self.settings.output("causal_effects.csv").unlink(missing_ok=True)  # never show stale
+        self.settings.output("causal_effects.csv").unlink(missing_ok=True)  
         try:
             from .causal import CausalAnalysis
 

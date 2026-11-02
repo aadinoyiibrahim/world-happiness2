@@ -1,4 +1,3 @@
-"""Plotly figure factory shared by both dashboards (one look, one palette)."""
 
 from __future__ import annotations
 
@@ -8,7 +7,6 @@ import plotly.graph_objects as go
 
 from .config import FACTORS, RESIDUAL, TARGET
 
-# Validated categorical order (fixed, never cycled) + one-hue sequential + blue/red diverging.
 CATEGORICAL = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#4a3aa7"]
 SEQUENTIAL = ["#cde2fb", "#86b6ef", "#3987e5", "#256abf", "#184f95", "#0d366b"]
 DIVERGING = ["#d03b3b", "#f0efec", "#2a78d6"]
@@ -28,7 +26,9 @@ def _style(fig: go.Figure, title: str) -> go.Figure:
 
 
 class Figures:
-    """Every chart takes a tidy DataFrame and returns a ``go.Figure``."""
+    """
+    Every chart takes a tidy DataFrame and returns a ``go.Figure``.
+    """
 
     @staticmethod
     def world_map(df: pd.DataFrame, col: str = TARGET) -> go.Figure:
@@ -50,7 +50,9 @@ class Figures:
 
     @staticmethod
     def regional_trends(trend: pd.DataFrame) -> go.Figure:
-        """Small multiples (10 regions exceed a safe categorical palette)."""
+        """
+        Small multiples (10 regions exceed a safe categorical palette).
+        """
         fig = px.line(
             trend,
             x="year",
@@ -213,7 +215,9 @@ class Figures:
 
     @staticmethod
     def causal_effects(effects: pd.DataFrame) -> go.Figure:
-        """Total (back-door) and direct effects with 95% clustered CIs."""
+        """
+        Total (back-door) and direct effects with 95% clustered CIs.
+        """
         d, fig = effects.sort_values("ate"), go.Figure()
         for (name, col, lo, hi), color in zip(
             [

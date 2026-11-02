@@ -1,4 +1,3 @@
-"""XGBoost model of the happiness score, baselines and SHAP explanations (TreeSHAP)."""
 
 from __future__ import annotations
 
@@ -18,7 +17,9 @@ Split = tuple[np.ndarray, np.ndarray]
 
 
 class AdditiveBaseline:
-    """score ~ sum(factors) + mean residual: the WHR identity itself, no learning."""
+    """
+    score ~ sum(factors) + mean residual: the WHR identity itself, no learning.
+    """
 
     def fit(self, x: pd.DataFrame, y: pd.Series) -> AdditiveBaseline:
         self.offset_ = float((y - x.sum(axis=1)).mean())
@@ -29,7 +30,8 @@ class AdditiveBaseline:
 
 
 class HappinessModel:
-    """Fits XGBoost on the six WHR factors and compares it with two baselines.
+    """
+    Fits XGBoost on the six WHR factors and compares it with two baselines.
 
     Validation uses two schemes: *temporal* (train on earlier years, test on the last)
     and *grouped* (5-fold by country, so no country appears in train and test).
@@ -93,10 +95,12 @@ class HappinessModel:
         return self
 
     def explain(self) -> pd.DataFrame:
-        """SHAP values in long format: one row per country-year-feature."""
+        """
+        SHAP values in long format: one row per country-year-feature.
+        """
         model = self.model or self.fit().model
         assert model is not None
-        # XGBoost's built-in exact TreeSHAP; last column is the bias term.
+        
         contribs = model.get_booster().predict(xgb.DMatrix(self.x), pred_contribs=True)
         wide = pd.DataFrame(contribs[:, :-1], columns=self.features)
         ids = self.df[["iso3", "country", "region", "year"]]

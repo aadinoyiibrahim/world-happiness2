@@ -1,4 +1,3 @@
-"""Back-door causal estimates with DoWhy (optional extra: ``pip install .[causal]``)."""
 
 from __future__ import annotations
 
@@ -9,7 +8,6 @@ import pandas as pd
 
 from .config import FACTORS, TARGET
 
-# Assumed DAG: income and health shape the other factors; every factor affects the score.
 EDGES: tuple[tuple[str, str], ...] = (
     *((f, TARGET) for f in FACTORS),
     *(("gdp_per_capita", f) for f in FACTORS if f != "gdp_per_capita"),
@@ -18,7 +16,10 @@ EDGES: tuple[tuple[str, str], ...] = (
 
 
 class CausalAnalysis:
-    """Total (back-door) and direct effect of each factor on the score, plus a placebo test."""
+    """
+    Total (back-door) and direct effect of each factor on the score, 
+    plus a placebo test.
+    """
 
     def __init__(self, df: pd.DataFrame, edges: Sequence[tuple[str, str]] = EDGES, seed: int = 42):
         self.df = df.dropna(subset=[*FACTORS, TARGET]).reset_index(drop=True)
@@ -27,7 +28,7 @@ class CausalAnalysis:
         self.seed = seed
 
     @property
-    def graph(self):  # noqa: ANN201 - networkx.DiGraph (networkx ships with dowhy)
+    def graph(self): 
         import networkx as nx
 
         return nx.DiGraph(self.edges)
@@ -57,10 +58,10 @@ class CausalAnalysis:
         direct, dlo, dhi = self._ols(treatment, others)
         return {
             "treatment": treatment,
-            "ate": float(est.value),  # total effect (includes paths via other factors)
+            "ate": float(est.value),  
             "ci_lower": lo,
             "ci_upper": hi,
-            "direct_effect": direct,  # all other factors held fixed
+            "direct_effect": direct,  
             "direct_ci_lower": dlo,
             "direct_ci_upper": dhi,
             "placebo_effect": float(placebo.new_effect),
@@ -68,7 +69,10 @@ class CausalAnalysis:
         }
 
     def _ols(self, treatment: str, adjust: Sequence[str]) -> tuple[float, float, float]:
-        """OLS coefficient and 95% CI with errors clustered by country (panel rows overlap)."""
+        """
+        OLS coefficient and 95% CI with errors clustered by 
+        country (panel rows overlap).
+        """
         import statsmodels.formula.api as smf
 
         groups = pd.factorize(self.df["iso3"])[0]

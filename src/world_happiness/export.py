@@ -1,11 +1,3 @@
-"""Export the live map as an animated GIF, e.g. for a README (GitHub cannot run JavaScript).
-
-Every frame is the same Plotly figure the dashboard shows, rendered to PNG with Kaleido
-(which drives a headless Chrome) and stitched together with Pillow.
-
-    uv sync --extra export
-    uv run wh export-map --outdir docs/assets/ --mode timeline --theme dark
-"""
 
 from __future__ import annotations
 
@@ -24,7 +16,9 @@ from .livemap import VIEWS, Frame, Mode, base_figure, build_frames, color_range
 
 
 def _card(frame: Frame, pal: T.Palette) -> str:
-    """The ranking card, as Plotly annotation HTML (the live page draws it in HTML/CSS)."""
+    """
+    The ranking card, as Plotly annotation HTML (the live page draws it in HTML/CSS).
+    """
     top = "<br>".join(f"{i}. {c}  {s:.2f}" for i, (c, s) in enumerate(frame.top, 1))
     worst = "<br>".join(f"{c}  {s:.2f}" for c, s in reversed(frame.bottom))
     text = f"<b style='color:{T.GOOD}'>▲ HAPPIEST</b><br>{top}"
@@ -33,16 +27,10 @@ def _card(frame: Frame, pal: T.Palette) -> str:
     return text
 
 
-def frame_figure(
-    locs: list[str],
-    frame: Frame,
-    scope: str,
-    mode: Mode,
-    zrange: tuple[float, float],
-    pal: T.Palette,
-    lon: float | None = None,
-) -> go.Figure:
-    """One still: the dashboard's map plus the year and the ranking card as annotations."""
+def frame_figure(locs: list[str], frame: Frame, scope: str, mode: Mode, zrange: tuple[float, float], pal: T.Palette, lon: float | None = None) -> go.Figure:
+    """
+    the dashboard's map plus the year and the ranking card as annotations.
+    """
     fig = base_figure(locs, frame, scope, mode, zrange, pal)
     if lon is not None:
         fig.update_geos(projection_rotation_lon=lon)
@@ -104,7 +92,8 @@ def export_map(
     frame_ms: int = 900,
     globe_steps: int = 36,
 ) -> Path:
-    """Write ``<outdir_>happiness_<scope>_<mode>_<theme>.gif`` and return its path.
+    """
+    Write ``<outdir_>happiness_<scope>_<mode>_<theme>.gif`` and return its path.
 
     ``timeline`` shows one frame per WHR year (the last year is held 3x longer); ``globe``
     turns the globe once (world) or rocks it around the continent, at ``year``

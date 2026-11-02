@@ -1,4 +1,3 @@
-"""Plotly charts for the Streamlit dashboard. Every function takes a :class:`theme.Palette`."""
 
 from __future__ import annotations
 
@@ -27,16 +26,15 @@ def _ring(pal: T.Palette, size: int, color: str, **extra: object) -> dict[str, o
     return {"size": size, "color": color, "line": {"width": 2, "color": pal.surface}, **extra}
 
 
-# ----------------------------------------------------------------------------- rankings
-def ranking_bars(
-    ranked: pd.DataFrame, bottom: bool, title: str, pal: T.Palette = T.DARK
-) -> go.Figure:
-    """Horizontal bars for a top/bottom-N table from :meth:`Explorer.top`, best at the top.
-
-    Whiskers are WHR's 95% confidence interval: overlapping whiskers mean the ranking
-    between those two countries is not statistically settled.
+def ranking_bars(ranked: pd.DataFrame, bottom: bool, title: str, pal: T.Palette = T.DARK) -> go.Figure:
     """
-    d = ranked.iloc[::-1]  # plotly draws the first category at the bottom
+    Horizontal bars for a top/bottom-N table 
+    from :meth:`Explorer.top`, best at the top.
+
+    Whiskers are WHR's 95% confidence interval: overlapping whiskers mean 
+    the ranking between those two countries is not statistically settled.
+    """
+    d = ranked.iloc[::-1]  # the first category at the bottom
     color = T.CRITICAL if bottom else T.GOOD
     labels = [f"{r}. {c}" for r, c in zip(d.scope_rank, d.country, strict=True)]
     has_ci = d.ci_lower.notna()
@@ -80,9 +78,11 @@ def ranking_bars(
     )
 
 
-# ------------------------------------------------------------------ continent compare
 def continent_range(summary: pd.DataFrame, pal: T.Palette = T.DARK) -> go.Figure:
-    """Dumbbell: least happy -> happiest country per continent, with the continent mean."""
+    """
+    Dumbbell: least happy -> happiest country per continent, 
+    with the continent mean.
+    """
     d = summary.iloc[::-1]
     fig = go.Figure()
     for _, r in d.iterrows():
@@ -132,10 +132,11 @@ def continent_range(summary: pd.DataFrame, pal: T.Palette = T.DARK) -> go.Figure
     )
 
 
-def continent_distribution(
-    year_df: pd.DataFrame, continents: list[str], pal: T.Palette = T.DARK
-) -> go.Figure:
-    """Every country as a dot over a box per continent: shows shape, not just the mean."""
+def continent_distribution(year_df: pd.DataFrame, continents: list[str], pal: T.Palette = T.DARK) -> go.Figure:
+    """
+    Every country as a dot over a box per continent: 
+    shows shape, not just the mean.
+    """
     fig = go.Figure()
     colors = pal.continent_colors
     for c in [c for c in CONTINENTS if c in continents]:
@@ -167,10 +168,10 @@ def continent_distribution(
     )
 
 
-def continent_trends(
-    trend: pd.DataFrame, continents: list[str], pal: T.Palette = T.DARK
-) -> go.Figure:
-    """Mean score per continent over time; one fixed colour per continent."""
+def continent_trends(trend: pd.DataFrame, continents: list[str], pal: T.Palette = T.DARK) -> go.Figure:
+    """
+    Mean score per continent over time; one fixed colour per continent.
+    """
     fig = go.Figure()
     colors = pal.continent_colors
     for c in [c for c in CONTINENTS if c in continents]:
@@ -197,11 +198,9 @@ def continent_trends(
     )
 
 
-# ------------------------------------------------------------------------ why? tab
-def decomposition_bars(
-    means: pd.DataFrame, highlight: list[str], pal: T.Palette = T.DARK
-) -> go.Figure:
-    """Stacked bars: what each group's mean score is made of (WHR decomposition).
+def decomposition_bars(means: pd.DataFrame, highlight: list[str], pal: T.Palette = T.DARK) -> go.Figure:
+    """
+    Stacked bars: what each group's mean score is made of (WHR decomposition).
 
     ``means`` has a ``group`` column (continents and/or "World") and one column per part.
     Groups in ``highlight`` are labelled in bold; the others are drawn at reduced opacity.
@@ -261,7 +260,10 @@ def decomposition_bars(
 
 
 def gap_waterfall(gap: pd.DataFrame, high: str, low: str, pal: T.Palette = T.DARK) -> go.Figure:
-    """Waterfall from ``low``'s score to ``high``'s: each step is one part's share of the gap."""
+    """
+    Waterfall from ``low``'s score to ``high``'s: each step is 
+    one part's share of the gap.
+    """
     total = gap["gap"].sum()
     labels = [PART_LABELS[p] for p in gap["part"]]
     text = [
@@ -301,7 +303,9 @@ def gap_waterfall(gap: pd.DataFrame, high: str, low: str, pal: T.Palette = T.DAR
 
 
 def gap_trend(trend: pd.DataFrame, high: str, low: str, pal: T.Palette = T.DARK) -> go.Figure:
-    """Each part's contribution to the ``high`` - ``low`` gap, year by year."""
+    """
+    Each part's contribution to the ``high`` - ``low`` gap, year by year.
+    """
     fig = go.Figure()
     for part in PARTS:
         g = trend[trend.part == part].sort_values("year")
@@ -332,10 +336,11 @@ def gap_trend(trend: pd.DataFrame, high: str, low: str, pal: T.Palette = T.DARK)
     )
 
 
-def factor_profile(
-    rows: pd.DataFrame, groups: list[str], pal: T.Palette = T.DARK, by: str = "continent"
-) -> go.Figure:
-    """Every country's contribution per factor, one colour per group: uniform or outliers?"""
+def factor_profile(rows: pd.DataFrame, groups: list[str], pal: T.Palette = T.DARK, by: str = "continent") -> go.Figure:
+    """
+    Every country's contribution per factor, 
+    one colour per group: uniform or outliers?
+    """
     fig = go.Figure()
     colors = pal.continent_colors
     fallback = list(pal.categorical)
@@ -373,14 +378,11 @@ def factor_profile(
     )
 
 
-def country_trends(
-    df: pd.DataFrame,
-    countries: list[str],
-    mean: pd.DataFrame,
-    pal: T.Palette = T.DARK,
-    mean_label: str = "Continent mean",
-) -> go.Figure:
-    """Score over time with 95% CI bands for a few countries, against a reference mean."""
+def country_trends(df: pd.DataFrame, countries: list[str], mean: pd.DataFrame, pal: T.Palette = T.DARK, mean_label: str = "Continent mean") -> go.Figure:
+    """
+    Score over time with 95% CI bands for a few countries, 
+    against a reference mean.
+    """
     fig = go.Figure()
     colors = [T.GOOD, T.CRITICAL, *pal.categorical]
     for country, color in zip(countries, colors, strict=False):
