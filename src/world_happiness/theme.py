@@ -94,7 +94,7 @@ def palette(mode: str | None) -> Palette:
 def layout(pal: Palette = DARK, **overrides: Any) -> dict[str, Any]:
     """
     Plotly layout defaults for every dashboard chart, in the given palette.
-    """
+    s"""
     axis = {
         "gridcolor": pal.grid,
         "linecolor": pal.axis,

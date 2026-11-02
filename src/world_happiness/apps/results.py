@@ -1,4 +1,3 @@
-"""Dash results dashboard: model performance, SHAP explanations and causal estimates."""
 
 from __future__ import annotations
 

@@ -1,11 +1,3 @@
-"""World Happiness Atlas: Streamlit dashboard.
-
-Run with ``uv run wh explore`` or ``uv run streamlit run streamlit_app.py``.
-
-Every control is mirrored in the URL (``?scope=Europe&show=worst&n=5&year=2025&map=globe``),
-so a view can be bookmarked or shared. The light/dark theme is Streamlit's own (defined in
-``.streamlit/config.toml``); charts and the map read it from ``st.context.theme``.
-"""
 
 from __future__ import annotations
 
@@ -41,9 +33,6 @@ CSS = """
 </style>
 """
 
-# Streamlit keeps the viewer's theme choice in localStorage under this key (Streamlit >= 1.46,
-# "v2" format) and reads it on load. The button writes it and reloads the page; if the key
-# format ever changes, the button does nothing harmful and the ⋮ → Settings menu still works.
 TOGGLE = """<!doctype html><html><head><style>
   html, body { margin:0; background:__PAGE__; display:flex; justify-content:flex-end; }
   button { font: 13px system-ui, -apple-system, "Segoe UI", sans-serif; color:__INK__;
@@ -82,7 +71,9 @@ COLUMN_LABELS = {
 
 
 def current_palette() -> T.Palette:
-    """The palette matching the theme the viewer sees (dark until the browser reports one)."""
+    """
+    The palette matching the theme the viewer sees (dark until the browser reports one).
+    """
     mode = getattr(getattr(st.context, "theme", None), "type", None)
     return T.palette(mode)
 
@@ -114,7 +105,9 @@ def theme_toggle(pal: T.Palette) -> None:
 
 @st.cache_data(show_spinner="Loading the World Happiness Report…")
 def load_panel() -> pd.DataFrame:
-    """Validated panel straight from the raw WHR file (no pipeline run needed)."""
+    """
+    Validated panel straight from the raw WHR file (no pipeline run needed).
+    """
     path = Settings().raw_path
     if not path.exists():  # e.g. launched from another working directory
         path = REPO_RAW / Settings().raw_file
@@ -132,7 +125,9 @@ def _param(key: str, allowed: list[str] | tuple[str, ...], default: str) -> str:
 
 
 def controls(years: list[int]) -> tuple[str, bool, int, int, str]:
-    """The button row. Returns (scope, worst, n, year, map mode) and syncs the URL."""
+    """
+    The button row. Returns (scope, worst, n, year, map mode) and syncs the URL.
+    """
     scopes = [WORLD, *CONTINENTS]
     q_year = st.query_params.get("year", "")
     year_default = int(q_year) if q_year.isdigit() and int(q_year) in years else years[-1]
@@ -210,7 +205,9 @@ def kpis(ex: Explorer, scope: str, year: int) -> None:
 
 
 def ranking_table(ex: Explorer, ranked: pd.DataFrame, year: int) -> pd.DataFrame:
-    """Ranked rows plus the change since the previous WHR year for each country."""
+    """
+    Ranked rows plus the change since the previous WHR year for each country.
+    """
     prev_years = [y for y in ex.years if y < year]
     out = ranked[["scope_rank", "country", "continent", "rank", TARGET]].assign(
         ci=[
@@ -224,10 +221,8 @@ def ranking_table(ex: Explorer, ranked: pd.DataFrame, year: int) -> pd.DataFrame
     return out
 
 
-def tab_rankings(
-    ex: Explorer, scope: str, worst: bool, n: int, year: int, mode: str, pal: T.Palette
-) -> None:
-    # our own generated page (escaped data, never user input), so running its JS is safe
+def tab_rankings(ex: Explorer, scope: str, worst: bool, n: int, year: int, mode: str, pal: T.Palette) -> None:
+ 
     st.iframe(live_map(ex.df, scope, n, year, mode, pal.mode), height=606)
     st.markdown(
         '<p class="note">Rings: ▲ green = top N, ▼ red = bottom N of the selected scope in the '
@@ -319,7 +314,9 @@ def tab_compare(ex: Explorer, worst: bool, n: int, year: int, pal: T.Palette) ->
 
 
 def tab_data(ex: Explorer, scope: str, year: int) -> None:
-    """The panel, filtered by the same scope and year as the rest of the app."""
+    """
+    The panel, filtered by the same scope and year as the rest of the app.
+    """
     all_years = st.toggle("All years", value=False, key="data_all_years")
     d = ex.df if all_years else ex.df[ex.df.year == year]
     if scope != WORLD:
