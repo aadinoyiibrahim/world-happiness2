@@ -1,4 +1,3 @@
-"""Rankings, continent comparison, live map and the Streamlit dashboard."""
 
 import json
 import re
@@ -154,7 +153,6 @@ def test_dashboard_ignores_bad_url(app):
     assert not at.exception and at.button_group(key="scope").value == WORLD
 
 
-# ------------------------------------------------------------- decomposition / why tab
 from world_happiness import theme as T  # noqa: E402
 from world_happiness.analysis import PARTS  # noqa: E402
 from world_happiness.insights import explain_gap  # noqa: E402
@@ -235,7 +233,6 @@ def test_dashboard_why_and_data_tabs(app):
     assert not data.isna().all().any()
 
 
-# ------------------------------------------------------------------------ GIF export
 from world_happiness.export import frame_figure  # noqa: E402
 from world_happiness.livemap import color_range  # noqa: E402
 

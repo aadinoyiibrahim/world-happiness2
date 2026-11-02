@@ -14,7 +14,9 @@ NAMES = ["Finland", "Germany", "Nigeria", "Kosovo", "North Cyprus", "Brazil", "J
 
 
 def synthetic_raw(seed: int = 0) -> pd.DataFrame:
-    """Figure-2.1-shaped data; factors missing before 2019, a gap in 2022, Swaziland->Eswatini."""
+    """
+    Figure-2.1-shaped data; factors missing before 2019, a gap in 2022, Swaziland->Eswatini.
+    """
     rng = np.random.default_rng(seed)
     rows = []
     for year in (2018, 2019, 2020, 2021, 2023):
