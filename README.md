@@ -1,15 +1,16 @@
 # World Happiness Atlas
 
 <p align="center">
+  <a href="https://world-happiness-atlas.streamlit.app">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/assets/happiness_world_timeline_dark.gif">
     <img alt="Animated world map of life evaluations 2011–2025, top and bottom 5 countries ringed"
          src="docs/assets/happiness_world_timeline_light.gif" width="100%">
   </picture>
+  </a>
 </p>
 
-
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://<your-app>.streamlit.app)
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://world-happiness-atlas.streamlit.app)
 [![CI](https://github.com/aadinoyiibrahim/world-happiness2/actions/workflows/ci.yml/badge.svg)](https://github.com/aadinoyiibrahim/world-happiness2/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/aadinoyiibrahim/world-happiness2/graph/badge.svg)](https://codecov.io/gh/aadinoyiibrahim/world-happiness2)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.12-blue)](pyproject.toml)
@@ -17,6 +18,8 @@
 [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Checked with mypy](https://www.mypy-lang.org/static/mypy_badge.svg)](https://mypy-lang.org/)
+
+**▶ Live app: [world-happiness-atlas.streamlit.app](https://world-happiness-atlas.streamlit.app)**
 
 An interactive Streamlit dashboard and a tested Python package for the World Happiness
 Report (WHR) 2026 *Data for Figure 2.1*: life evaluations for 167 countries, 2011–2025.
@@ -95,7 +98,7 @@ uv run wh results                # Dash results on http://localhost:8050
 
 | Target | How |
 |---|---|
-| **Streamlit Community Cloud** | New app → this repo, branch `main`, main file `streamlit_app.py`. It installs the core dependencies from `uv.lock`; the theme comes from `.streamlit/config.toml`. |
+| **Streamlit Community Cloud** (live at [world-happiness-atlas.streamlit.app](https://world-happiness-atlas.streamlit.app)) | New app → this repo, branch `main`, main file `streamlit_app.py`. It installs the core dependencies from `uv.lock`; the theme comes from `.streamlit/config.toml`. |
 | **Docker / any VM** | `docker compose up --build -d dashboard` serves on port 8501, restarts automatically and has a health check. `docker compose up --build` also runs the pipeline and the Dash results app. |
 | **Render / Fly / Cloud Run** | Build the `Dockerfile`; the default command starts the dashboard on port 8501. |
 
