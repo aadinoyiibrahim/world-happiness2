@@ -8,7 +8,7 @@
   </picture>
 </p>
 
-[![CI](https://github.com/aadinoyiibrahim/world-happiness2/actions/workflows/ci.yml/badge.svg)](https://github.com/aadinoyiibrahim/world-happiness2/actions/workflows/ci.yml)
+
 [![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://<your-app>.streamlit.app)
 [![CI](https://github.com/aadinoyiibrahim/world-happiness2/actions/workflows/ci.yml/badge.svg)](https://github.com/aadinoyiibrahim/world-happiness2/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/aadinoyiibrahim/world-happiness2/graph/badge.svg)](https://codecov.io/gh/aadinoyiibrahim/world-happiness2)
@@ -17,6 +17,7 @@
 [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Checked with mypy](https://www.mypy-lang.org/static/mypy_badge.svg)](https://mypy-lang.org/)
+
 An interactive Streamlit dashboard and a tested Python package for the World Happiness
 Report (WHR) 2026 *Data for Figure 2.1*: life evaluations for 167 countries, 2011–2025.
 
