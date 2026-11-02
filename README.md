@@ -43,6 +43,8 @@ Report (WHR) 2026 *Data for Figure 2.1*: life evaluations for 167 countries, 201
 - **Shareable URLs**: every control is saved in the address bar, for example
   `?scope=Europe&show=worst&n=5&year=2025&map=globe`.
 
+<!--
+
 ## Animated map for READMEs and slides
 
 GitHub cannot run the live map's JavaScript, so it is exported as a GIF. Each frame is the
@@ -58,6 +60,8 @@ uv run wh export-map --mode globe --scope Europe        # rocking globe over Eur
 
 Files land in `docs/assets/` as `happiness_<scope>_<mode>_<theme>.gif`. The world timeline
 is about 1 MB; a 36-frame globe is about 3.5 MB. Regenerate the GIFs when the data changes.
+
+–->
 
 ## Run it
 
