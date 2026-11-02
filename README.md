@@ -61,7 +61,7 @@ uv run wh export-map --mode globe --scope Europe        # rocking globe over Eur
 Files land in `docs/assets/` as `happiness_<scope>_<mode>_<theme>.gif`. The world timeline
 is about 1 MB; a 36-frame globe is about 3.5 MB. Regenerate the GIFs when the data changes.
 
-–->
+-->
 
 ## Run it
 
