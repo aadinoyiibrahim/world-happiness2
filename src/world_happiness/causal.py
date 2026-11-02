@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import logging
@@ -17,7 +16,7 @@ EDGES: tuple[tuple[str, str], ...] = (
 
 class CausalAnalysis:
     """
-    Total (back-door) and direct effect of each factor on the score, 
+    Total (back-door) and direct effect of each factor on the score,
     plus a placebo test.
     """
 
@@ -28,7 +27,7 @@ class CausalAnalysis:
         self.seed = seed
 
     @property
-    def graph(self): 
+    def graph(self):
         import networkx as nx
 
         return nx.DiGraph(self.edges)
@@ -58,10 +57,10 @@ class CausalAnalysis:
         direct, dlo, dhi = self._ols(treatment, others)
         return {
             "treatment": treatment,
-            "ate": float(est.value),  
+            "ate": float(est.value),
             "ci_lower": lo,
             "ci_upper": hi,
-            "direct_effect": direct,  
+            "direct_effect": direct,
             "direct_ci_lower": dlo,
             "direct_ci_upper": dhi,
             "placebo_effect": float(placebo.new_effect),
@@ -70,7 +69,7 @@ class CausalAnalysis:
 
     def _ols(self, treatment: str, adjust: Sequence[str]) -> tuple[float, float, float]:
         """
-        OLS coefficient and 95% CI with errors clustered by 
+        OLS coefficient and 95% CI with errors clustered by
         country (panel rows overlap).
         """
         import statsmodels.formula.api as smf

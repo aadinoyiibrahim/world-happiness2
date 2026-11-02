@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import json
@@ -39,7 +38,9 @@ class Frame:
     bottom: list[tuple[str, float]]
 
 
-def build_frames(df: pd.DataFrame, scope: str, n: int, pal: T.Palette = T.DARK) -> tuple[list[str], list[Frame]]:
+def build_frames(
+    df: pd.DataFrame, scope: str, n: int, pal: T.Palette = T.DARK
+) -> tuple[list[str], list[Frame]]:
     """
     Fixed location list for the scope + one :class:`Frame` per year.
 
@@ -99,7 +100,14 @@ def build_frames(df: pd.DataFrame, scope: str, n: int, pal: T.Palette = T.DARK) 
     return locs, frames
 
 
-def base_figure(locs: list[str], frame: Frame, scope: str, mode: Mode, zrange: tuple[float, float], pal: T.Palette = T.DARK) -> go.Figure:
+def base_figure(
+    locs: list[str],
+    frame: Frame,
+    scope: str,
+    mode: Mode,
+    zrange: tuple[float, float],
+    pal: T.Palette = T.DARK,
+) -> go.Figure:
     lon, lat, centre = VIEWS[scope]
     hover = (
         "<b>%{customdata[0]}</b><br>Life evaluation <b>%{z:.2f}</b> / 10<br>"
@@ -144,10 +152,10 @@ def base_figure(locs: list[str], frame: Frame, scope: str, mode: Mode, zrange: t
         "oceancolor": pal.ocean,
         "showlakes": False,
         "bgcolor": "rgba(0,0,0,0)",
-        "domain": {"x": [0.04, 0.78], "y": [0, 1]},  
+        "domain": {"x": [0.04, 0.78], "y": [0, 1]},
     }
     if mode == "globe":
-        tilt = max(-30, min(35, centre[1]))  
+        tilt = max(-30, min(35, centre[1]))
         geo |= {
             "projection": {"type": "orthographic", "rotation": {"lon": centre[0], "lat": tilt}},
             "lataxis": {"showgrid": True, "gridcolor": pal.grid, "dtick": 30},
@@ -214,7 +222,7 @@ def render_html(
         "interval": interval_ms,
         "spin": spin_deg_per_s,
         "lon0": VIEWS[scope][2][0],
-        "sway": 0 if scope == WORLD else 45,  
+        "sway": 0 if scope == WORLD else 45,
     }
     data = json.dumps(payload, separators=(",", ":")).replace("</", "<\\/")
     subs = {
@@ -238,4 +246,4 @@ def render_html(
     html = TEMPLATE.read_text(encoding="utf-8")
     for k, v in subs.items():
         html = html.replace(k, v)
-    return html.replace("__DATA__", data)  
+    return html.replace("__DATA__", data)

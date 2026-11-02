@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 from collections.abc import Callable, Iterator, Sequence
@@ -100,7 +99,7 @@ class HappinessModel:
         """
         model = self.model or self.fit().model
         assert model is not None
-        
+
         contribs = model.get_booster().predict(xgb.DMatrix(self.x), pred_contribs=True)
         wide = pd.DataFrame(contribs[:, :-1], columns=self.features)
         ids = self.df[["iso3", "country", "region", "year"]]

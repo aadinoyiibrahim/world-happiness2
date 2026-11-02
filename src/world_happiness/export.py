@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import io
@@ -27,7 +26,15 @@ def _card(frame: Frame, pal: T.Palette) -> str:
     return text
 
 
-def frame_figure(locs: list[str], frame: Frame, scope: str, mode: Mode, zrange: tuple[float, float], pal: T.Palette, lon: float | None = None) -> go.Figure:
+def frame_figure(
+    locs: list[str],
+    frame: Frame,
+    scope: str,
+    mode: Mode,
+    zrange: tuple[float, float],
+    pal: T.Palette,
+    lon: float | None = None,
+) -> go.Figure:
     """
     the dashboard's map plus the year and the ranking card as annotations.
     """

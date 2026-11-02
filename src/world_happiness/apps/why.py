@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import pandas as pd
@@ -12,7 +11,7 @@ from world_happiness.countries import CONTINENTS
 from world_happiness.insights import explain_gap
 
 CFG = {"displayModeBar": False}
-MIN_COUNTRIES = 5  
+MIN_COUNTRIES = 5
 
 
 def _pick(label: str, options: list[str], default: str, key: str) -> str:
@@ -35,12 +34,13 @@ def render(ex: Explorer, year: int, pal: T.Palette) -> None:
     _countries(ex, fy, pal)
     _method(ex, fy)
 
+
 def _continents(ex: Explorer, fy: int, pal: T.Palette) -> None:
     means = ex.factor_means(fy)
     m = means.set_index("group")
     cont = m.drop(index=WORLD)
     big = cont[cont["countries"] >= MIN_COUNTRIES]
-    if len(big) < 2:  
+    if len(big) < 2:
         big = cont
     st.markdown(f"### 1 · Best vs worst continent, {fy}")
     st.caption(
@@ -57,7 +57,7 @@ def _continents(ex: Explorer, fy: int, pal: T.Palette) -> None:
         st.warning("Pick two different continents.")
         return
     if m.loc[high, TARGET] < m.loc[low, TARGET]:
-        high, low = low, high  
+        high, low = low, high
     gap = ex.gap(m.loc[high], m.loc[low])
     _narrative(explain_gap(gap, high, low))
     left, right = st.columns(2)

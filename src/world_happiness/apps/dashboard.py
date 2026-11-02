@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 from pathlib import Path
@@ -221,8 +220,10 @@ def ranking_table(ex: Explorer, ranked: pd.DataFrame, year: int) -> pd.DataFrame
     return out
 
 
-def tab_rankings(ex: Explorer, scope: str, worst: bool, n: int, year: int, mode: str, pal: T.Palette) -> None:
- 
+def tab_rankings(
+    ex: Explorer, scope: str, worst: bool, n: int, year: int, mode: str, pal: T.Palette
+) -> None:
+
     st.iframe(live_map(ex.df, scope, n, year, mode, pal.mode), height=606)
     st.markdown(
         '<p class="note">Rings: ▲ green = top N, ▼ red = bottom N of the selected scope in the '

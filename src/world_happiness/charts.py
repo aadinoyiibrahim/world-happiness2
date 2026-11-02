@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import pandas as pd
@@ -26,12 +25,14 @@ def _ring(pal: T.Palette, size: int, color: str, **extra: object) -> dict[str, o
     return {"size": size, "color": color, "line": {"width": 2, "color": pal.surface}, **extra}
 
 
-def ranking_bars(ranked: pd.DataFrame, bottom: bool, title: str, pal: T.Palette = T.DARK) -> go.Figure:
+def ranking_bars(
+    ranked: pd.DataFrame, bottom: bool, title: str, pal: T.Palette = T.DARK
+) -> go.Figure:
     """
-    Horizontal bars for a top/bottom-N table 
+    Horizontal bars for a top/bottom-N table
     from :meth:`Explorer.top`, best at the top.
 
-    Whiskers are WHR's 95% confidence interval: overlapping whiskers mean 
+    Whiskers are WHR's 95% confidence interval: overlapping whiskers mean
     the ranking between those two countries is not statistically settled.
     """
     d = ranked.iloc[::-1]  # the first category at the bottom
@@ -80,7 +81,7 @@ def ranking_bars(ranked: pd.DataFrame, bottom: bool, title: str, pal: T.Palette 
 
 def continent_range(summary: pd.DataFrame, pal: T.Palette = T.DARK) -> go.Figure:
     """
-    Dumbbell: least happy -> happiest country per continent, 
+    Dumbbell: least happy -> happiest country per continent,
     with the continent mean.
     """
     d = summary.iloc[::-1]
@@ -132,9 +133,11 @@ def continent_range(summary: pd.DataFrame, pal: T.Palette = T.DARK) -> go.Figure
     )
 
 
-def continent_distribution(year_df: pd.DataFrame, continents: list[str], pal: T.Palette = T.DARK) -> go.Figure:
+def continent_distribution(
+    year_df: pd.DataFrame, continents: list[str], pal: T.Palette = T.DARK
+) -> go.Figure:
     """
-    Every country as a dot over a box per continent: 
+    Every country as a dot over a box per continent:
     shows shape, not just the mean.
     """
     fig = go.Figure()
@@ -168,7 +171,9 @@ def continent_distribution(year_df: pd.DataFrame, continents: list[str], pal: T.
     )
 
 
-def continent_trends(trend: pd.DataFrame, continents: list[str], pal: T.Palette = T.DARK) -> go.Figure:
+def continent_trends(
+    trend: pd.DataFrame, continents: list[str], pal: T.Palette = T.DARK
+) -> go.Figure:
     """
     Mean score per continent over time; one fixed colour per continent.
     """
@@ -198,7 +203,9 @@ def continent_trends(trend: pd.DataFrame, continents: list[str], pal: T.Palette 
     )
 
 
-def decomposition_bars(means: pd.DataFrame, highlight: list[str], pal: T.Palette = T.DARK) -> go.Figure:
+def decomposition_bars(
+    means: pd.DataFrame, highlight: list[str], pal: T.Palette = T.DARK
+) -> go.Figure:
     """
     Stacked bars: what each group's mean score is made of (WHR decomposition).
 
@@ -261,7 +268,7 @@ def decomposition_bars(means: pd.DataFrame, highlight: list[str], pal: T.Palette
 
 def gap_waterfall(gap: pd.DataFrame, high: str, low: str, pal: T.Palette = T.DARK) -> go.Figure:
     """
-    Waterfall from ``low``'s score to ``high``'s: each step is 
+    Waterfall from ``low``'s score to ``high``'s: each step is
     one part's share of the gap.
     """
     total = gap["gap"].sum()
@@ -336,9 +343,11 @@ def gap_trend(trend: pd.DataFrame, high: str, low: str, pal: T.Palette = T.DARK)
     )
 
 
-def factor_profile(rows: pd.DataFrame, groups: list[str], pal: T.Palette = T.DARK, by: str = "continent") -> go.Figure:
+def factor_profile(
+    rows: pd.DataFrame, groups: list[str], pal: T.Palette = T.DARK, by: str = "continent"
+) -> go.Figure:
     """
-    Every country's contribution per factor, 
+    Every country's contribution per factor,
     one colour per group: uniform or outliers?
     """
     fig = go.Figure()
@@ -378,9 +387,15 @@ def factor_profile(rows: pd.DataFrame, groups: list[str], pal: T.Palette = T.DAR
     )
 
 
-def country_trends(df: pd.DataFrame, countries: list[str], mean: pd.DataFrame, pal: T.Palette = T.DARK, mean_label: str = "Continent mean") -> go.Figure:
+def country_trends(
+    df: pd.DataFrame,
+    countries: list[str],
+    mean: pd.DataFrame,
+    pal: T.Palette = T.DARK,
+    mean_label: str = "Continent mean",
+) -> go.Figure:
     """
-    Score over time with 95% CI bands for a few countries, 
+    Score over time with 95% CI bands for a few countries,
     against a reference mean.
     """
     fig = go.Figure()

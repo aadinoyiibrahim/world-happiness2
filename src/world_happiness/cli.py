@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import argparse
@@ -48,7 +47,7 @@ def main(argv: list[str] | None = None) -> None:
         logging.getLogger("wh").info("Wrote %s (%.1f MB)", path, path.stat().st_size / 1e6)
         return
 
-    from .pipeline import Pipeline 
+    from .pipeline import Pipeline
 
     if args.cmd == "run":
         Pipeline().run(causal=not args.no_causal)

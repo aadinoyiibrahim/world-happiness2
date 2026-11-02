@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import pandas as pd
@@ -7,11 +6,12 @@ from .config import FACTORS, RESIDUAL, TARGET
 from .countries import CONTINENTS
 
 WORLD = "World"
-PARTS = [*FACTORS, RESIDUAL]  
+PARTS = [*FACTORS, RESIDUAL]
+
 
 class Explorer:
     """
-    Read-only questions over the panel. 
+    Read-only questions over the panel.
     Every method returns a DataFrame or Series.
     """
 
@@ -38,7 +38,7 @@ class Explorer:
 
     def scope(self, scope: str = WORLD, year: int | None = None) -> pd.DataFrame:
         """
-        Rows for one year in the world or one continent, 
+        Rows for one year in the world or one continent,
         ranked within that scope.
 
         ``scope_rank`` is 1 for the happiest country *inside the scope*; ``rank`` stays the
@@ -60,7 +60,7 @@ class Explorer:
         scope: str = WORLD,
     ) -> pd.DataFrame:
         """
-        Happiest (or, with ``bottom``, least happy) ``n`` 
+        Happiest (or, with ``bottom``, least happy) ``n``
         countries in a scope and year.
 
         Both directions are ordered best-first, so the last row of ``bottom=True`` is the
@@ -71,7 +71,7 @@ class Explorer:
 
     def continent_summary(self, year: int | None = None) -> pd.DataFrame:
         """
-        One row per continent: size, mean/median/spread of the score, 
+        One row per continent: size, mean/median/spread of the score,
         best and worst.
         """
         d = self.scope(WORLD, year)
@@ -87,7 +87,7 @@ class Explorer:
 
     def continent_trend(self) -> pd.DataFrame:
         """
-        Mean score per continent and year 
+        Mean score per continent and year
         (over the countries surveyed that year).
         """
         g = self.df.groupby(["continent", "year"], observed=True)[TARGET]
@@ -96,7 +96,7 @@ class Explorer:
     @property
     def factor_years(self) -> list[int]:
         """
-        Years in which WHR published the six-factor 
+        Years in which WHR published the six-factor
         decomposition (2019 onwards).
         """
         full = self.df.dropna(subset=list(FACTORS))
@@ -104,7 +104,7 @@ class Explorer:
 
     def factor_year(self, year: int) -> int:
         """
-        ``year`` if it has the decomposition, 
+        ``year`` if it has the decomposition,
         else the nearest year that does.
         """
         years = self.factor_years
@@ -114,7 +114,7 @@ class Explorer:
 
     def decomposed(self, year: int, scope: str = WORLD) -> pd.DataFrame:
         """
-        Country rows with all six factors, 
+        Country rows with all six factors,
         for one year and scope, best first.
         """
         d = self.scope(scope, year).dropna(subset=list(FACTORS))
@@ -122,7 +122,7 @@ class Explorer:
 
     def factor_means(self, year: int) -> pd.DataFrame:
         """
-        Mean score and mean contribution of every factor 
+        Mean score and mean contribution of every factor
         per continent (plus the world).
 
         Means are over countries with the full decomposition. Because each country's score is
@@ -140,7 +140,7 @@ class Explorer:
     @staticmethod
     def gap(high: pd.Series, low: pd.Series) -> pd.DataFrame:
         """
-        Split ``high[score] - low[score]`` into the gap 
+        Split ``high[score] - low[score]`` into the gap
         in each part of the decomposition.
 
         ``gap`` sums to the score gap; ``share`` is each part's fraction of it (can be
@@ -160,7 +160,7 @@ class Explorer:
 
     def continent_gap_trend(self, high: str, low: str) -> pd.DataFrame:
         """
-        Per-part gap between two continents' means, 
+        Per-part gap between two continents' means,
         for every decomposition year.
         """
         rows = []
